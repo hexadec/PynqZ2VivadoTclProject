@@ -4,3 +4,5 @@ block_design
 /*.hw
 /*.xpr
 /*.ip_user_files
+/*.runs
+/*.sim
