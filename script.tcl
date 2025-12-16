@@ -26,6 +26,13 @@ update_compile_order -fileset sources
 startgroup
 
 create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 processing_system7_0
+apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 -config { \
+	make_external "FIXED_IO, DDR" \
+	apply_board_preset "1" \
+	Master "Disable" \
+	Slave "Disable" \
+} [get_bd_cells processing_system7_0]
+
 create_bd_cell -type ip -vlnv xilinx.com:ip:clk_wiz:6.0 clk_wiz_0
 create_bd_cell -type module -reference block block_0
 
@@ -34,6 +41,10 @@ set_property -dict [list \
   CONFIG.PCW_UIPARAM_DDR_FREQ_MHZ {400} \
   CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {100} \
   CONFIG.PCW_USE_M_AXI_GP0 {0} \
+  CONFIG.PCW_ENET0_PERIPHERAL_ENABLE {0} \
+  CONFIG.PCW_QSPI_GRP_SINGLE_SS_ENABLE {0} \
+  CONFIG.PCW_SD0_PERIPHERAL_ENABLE {0} \
+  CONFIG.PCW_USB0_PERIPHERAL_ENABLE {0} \
 ] [get_bd_cells processing_system7_0]
 
 set_property -dict [list \

@@ -1,0 +1,6 @@
+block_design
+/*.cache
+/*.gen
+/*.hw
+/*.xpr
+/*.ip_user_files
