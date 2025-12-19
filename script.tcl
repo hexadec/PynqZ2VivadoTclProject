@@ -22,6 +22,8 @@ file mkdir "${project_folder}/block_design"
 create_bd_design -dir "${project_folder}/block_design" design_1
 update_compile_order -fileset sources
 
+set_property ip_repo_paths "${project_folder}/vivado-library" [current_project]
+update_ip_catalog
 
 startgroup
 
