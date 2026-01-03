@@ -91,6 +91,8 @@ regenerate_bd_layout
 save_bd_design
 make_wrapper -files [get_files "${project_folder}/block_design/design_1/design_1.bd"] -top
 add_files -norecurse "${project_folder}/block_design/design_1/hdl/design_1_wrapper.v"
+set_property top design_1_wrapper [current_fileset]
+update_compile_order -fileset sources_1
 
 create_run synthesis1 -flow {Vivado Synthesis 2025}
 create_run implementation1 -parent_run synthesis1 -flow {Vivado Implementation 2025}

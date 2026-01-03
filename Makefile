@@ -9,7 +9,7 @@ build:
     
 clean:
 	@echo Removing generated files from project folder
-	rm -rf ${project_name}.cache ${project_name}.gen ${project_name}.hw 
+	rm -rf ${project_name}.cache ${project_name}.gen ${project_name}.hw ${project_name}.srcs
 	rm -rf ${project_name}.ip_user_files ${project_name}.runs ${project_name}.sim
 	rm -rf block_design .Xil NA
 	rm -f ${project_name}.xpr
