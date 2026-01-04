@@ -1,6 +1,6 @@
 module framebuffer #(
     parameter ADDR_WIDTH = 17,
-    parameter DATA_WIDTH = 24
+    parameter DATA_WIDTH = 12
     ) (
     input clk_wr, clk_rd, en_wr, en_rd, wrea,
     input [ADDR_WIDTH - 1:0] addr_rd, addr_wr,
@@ -8,7 +8,7 @@ module framebuffer #(
     output reg [DATA_WIDTH - 1:0] dout
     );
 
-    reg [23:0] ram [(2 ** ADDR_WIDTH) - 1:0];
+    reg [DATA_WIDTH - 1:0] ram [(2 ** ADDR_WIDTH) - 1:0];
     
     always @(posedge clk_wr) begin
         if (en_wr) begin

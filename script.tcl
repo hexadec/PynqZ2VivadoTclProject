@@ -18,6 +18,7 @@ set_property constrset constraints [get_runs impl_1]
 add_files -fileset sources_1 "${project_folder}/sources/block.v"
 add_files -fileset sources_1 "${project_folder}/sources/fbuf2rgb.v"
 add_files -fileset sources_1 "${project_folder}/sources/framebuffer.v"
+add_files -fileset sources_1 "${project_folder}/sources/color_converter.v"
 update_compile_order -fileset sources_1
 file mkdir "${project_folder}/block_design"
 create_bd_design -dir "${project_folder}/block_design" design_1
@@ -41,6 +42,7 @@ create_bd_cell -type ip -vlnv digilentinc.com:ip:rgb2dvi:1.4 rgb2dvi_0
 create_bd_cell -type module -reference block block_0
 create_bd_cell -type module -reference framebuffer framebuffer_0
 create_bd_cell -type module -reference fbuf2rgb fbuf2rgb_0
+create_bd_cell -type module -reference color_converter color_converter_0
 
 set_property -dict [list \
   CONFIG.PCW_APU_PERIPHERAL_FREQMHZ {100} \
@@ -81,7 +83,9 @@ connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins block_0/clk]
 connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins rgb2dvi_0/PixelClk]
 connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins framebuffer_0/clk_rd]
 connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins fbuf2rgb_0/clk]
-connect_bd_net [get_bd_pins framebuffer_0/dout] [get_bd_pins rgb2dvi_0/vid_pData]
+connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins color_converter_0/clk]
+connect_bd_net [get_bd_pins framebuffer_0/dout] [get_bd_pins color_converter_0/in_color]
+connect_bd_net [get_bd_pins color_converter_0/out_color] [get_bd_pins rgb2dvi_0/vid_pData]
 connect_bd_net [get_bd_pins fbuf2rgb_0/hsync] [get_bd_pins rgb2dvi_0/vid_pHSync]
 connect_bd_net [get_bd_pins fbuf2rgb_0/vsync] [get_bd_pins rgb2dvi_0/vid_pVSync]
 connect_bd_net [get_bd_pins fbuf2rgb_0/vde] [get_bd_pins rgb2dvi_0/vid_pVDE]
