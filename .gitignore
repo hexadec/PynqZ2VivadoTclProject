@@ -6,3 +6,7 @@ block_design
 /*.ip_user_files
 /*.runs
 /*.sim
+/NA
+/.Xil
+/vivado*.log
+/vivado*.jou
