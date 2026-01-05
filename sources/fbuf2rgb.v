@@ -23,6 +23,7 @@
 module fbuf2rgb
 #(
     parameter RESOLUTION = 1080,
+    parameter SCALING_FACTOR = 4,
     parameter CONTROL_DELAY = 1 // 1 extra delay is added in code to compensate for pixel address calculation delay
 ) (
     input wire clk,
@@ -137,7 +138,7 @@ module fbuf2rgb
             for (j = 1; j < CONTROL_DELAY + 1; j = j + 1) begin
                 pixel_x_int[j] <= pixel_x_int[j - 1];
             end
-            pixel_fbuf_address_int <= vde ? (h_counter / 8) * F_PROPS.FRAME_H / 8 + (v_counter / 8) : 0;
+            pixel_fbuf_address_int <= vde ? (h_counter / SCALING_FACTOR) * F_PROPS.FRAME_H / SCALING_FACTOR + (v_counter / SCALING_FACTOR) : 0;
         end
     end
     

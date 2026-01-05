@@ -19,6 +19,7 @@ add_files -fileset sources_1 "${project_folder}/sources/block.v"
 add_files -fileset sources_1 "${project_folder}/sources/fbuf2rgb.v"
 add_files -fileset sources_1 "${project_folder}/sources/framebuffer.v"
 add_files -fileset sources_1 "${project_folder}/sources/color_converter.v"
+add_files -fileset sources_1 "${project_folder}/sources/test_pattern_generator.v"
 update_compile_order -fileset sources_1
 file mkdir "${project_folder}/block_design"
 create_bd_design -dir "${project_folder}/block_design" design_1
@@ -43,6 +44,7 @@ create_bd_cell -type module -reference block block_0
 create_bd_cell -type module -reference framebuffer framebuffer_0
 create_bd_cell -type module -reference fbuf2rgb fbuf2rgb_0
 create_bd_cell -type module -reference color_converter color_converter_0
+create_bd_cell -type module -reference test_pattern_generator test_pattern_generat_0
 
 set_property -dict [list \
   CONFIG.PCW_APU_PERIPHERAL_FREQMHZ {100} \
@@ -71,9 +73,12 @@ set_property CONFIG.kRstActiveHigh {false} [get_bd_cells rgb2dvi_0]
 endgroup
 
 connect_bd_net [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins clk_wiz_0/clk_in1]
+connect_bd_net [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins test_pattern_generat_0/clk]
+connect_bd_net [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins framebuffer_0/clk_wr]
 connect_bd_net [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins clk_wiz_0/resetn]
 connect_bd_net [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins fbuf2rgb_0/rst_n]
 connect_bd_net [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins rgb2dvi_0/aRst_n]
+connect_bd_net [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins test_pattern_generat_0/rst_n]
 create_bd_port -dir O -from 3 -to 0 led
 connect_bd_net [get_bd_ports led] [get_bd_pins block_0/out_led]
 create_bd_port -dir I -from 3 -to 0 btn
@@ -84,6 +89,10 @@ connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins rgb2dvi_0/PixelClk]
 connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins framebuffer_0/clk_rd]
 connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins fbuf2rgb_0/clk]
 connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins color_converter_0/clk]
+connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_address] [get_bd_pins framebuffer_0/addr_wr]
+connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_wr_en] [get_bd_pins framebuffer_0/wrea]
+connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_wr_en] [get_bd_pins framebuffer_0/en_wr]
+connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_color] [get_bd_pins framebuffer_0/din]
 connect_bd_net [get_bd_pins framebuffer_0/dout] [get_bd_pins color_converter_0/in_color]
 connect_bd_net [get_bd_pins color_converter_0/out_color] [get_bd_pins rgb2dvi_0/vid_pData]
 connect_bd_net [get_bd_pins fbuf2rgb_0/hsync] [get_bd_pins rgb2dvi_0/vid_pHSync]

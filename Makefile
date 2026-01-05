@@ -3,7 +3,7 @@ vivado_folder := ~/Software/AMD/2025.2/Vivado/bin
 
 all: clean build
 
-build:
+build: script.tcl
 	@echo Building with Vivado...
 	${vivado_folder}/vivado -mode batch -source script.tcl -verbose
     
