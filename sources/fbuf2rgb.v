@@ -113,7 +113,7 @@ module fbuf2rgb
     reg [CONTROL_DELAY : 0] vsync_int;
     reg [12:0] pixel_x_int [CONTROL_DELAY : 0];
     reg [12:0] pixel_y_int [CONTROL_DELAY : 0];
-    reg pixel_fbuf_address_int;
+    reg [16:0] pixel_fbuf_address_int;
     
     
     integer i;
