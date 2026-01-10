@@ -1,11 +1,15 @@
 project_name := project_2
 vivado_folder := ~/Software/AMD/2025.2/Vivado/bin
 
-all: clean build
+all: clean $(project_name).xpr
 
-build: script.tcl
+$(project_name).xpr: script.tcl
 	@echo Building with Vivado...
 	${vivado_folder}/vivado -mode batch -source script.tcl -verbose
+
+bitstream: $(project_name).xpr bitstream.tcl
+	@echo Building with Vivado...
+	${vivado_folder}/vivado -mode batch -source bitstream.tcl -verbose
     
 clean:
 	@echo Removing generated files from project folder
@@ -14,4 +18,3 @@ clean:
 	rm -rf block_design .Xil NA
 	rm -f ${project_name}.xpr
 	rm -f vivado*.log vivado*.jou
-    
