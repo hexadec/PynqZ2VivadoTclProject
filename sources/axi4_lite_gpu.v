@@ -27,7 +27,7 @@ module axi4_lite_gpu #(
     // Write response channel
     output [1:0] s_axi_ctrl_bresp,
     output s_axi_ctrl_bvalid,
-    input s_axi_ctrl_bready
+    input s_axi_ctrl_bready,
 
     // Framebuffer BRAM connection (write only)
     output fbuf_en_wr,
