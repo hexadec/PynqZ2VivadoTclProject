@@ -1,8 +1,8 @@
 module axi4_lite_gpu #(
     parameter AXI_ADDRESS_WIDTH = 32,
     parameter AXI_DATA_WIDTH = 32,
-    parameter FBUF_ADDR_WIDTH = 17,
-    parameter FBUF_DATA_WIDTH = 12
+    parameter FBUF_ADDR_WIDTH = 19,
+    parameter FBUF_DATA_WIDTH = 8
 ) (
     // AXI global signals
     input s_axi_ctrl_aclk,

@@ -11,6 +11,9 @@ foreach prop $props {
     set value [get_property $prop [get_runs implementation1]]
     puts "$prop: $value"
 }
+
+set_msg_config -id [41-2383] -new_severity ERROR
+
 reset_run implementation1
 launch_runs implementation1 -to_step write_bitstream -jobs 4
 wait_on_runs implementation1

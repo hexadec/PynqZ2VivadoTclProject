@@ -1,18 +1,26 @@
 module test_pattern_generator #(
-        parameter FRAME_WIDTH = 1920,
-        parameter FRAME_HEIGHT = 1080,
-        parameter SCALING_FACTOR = 4
+        parameter FRAME_WIDTH = 640,
+        parameter FRAME_HEIGHT = 480,
+        parameter SCALING_FACTOR = 1,
+        parameter FBUF_ADDR_WIDTH = 19,
+        parameter FBUF_DATA_WIDTH = 8
     ) (
         input wire clk,
         input wire rst_n,
-        output reg [16:0] pixel_fbuf_address,
-        output reg [11:0] pixel_fbuf_color,
+        output reg [FBUF_ADDR_WIDTH - 1 : 0] pixel_fbuf_address,
+        output reg [FBUF_DATA_WIDTH - 1 : 0] pixel_fbuf_color,
         output reg pixel_fbuf_wr_en
     );
 
-    reg [16:0] address_counter;
-    reg [8:0] pixel_x_counter;
-    reg [8:0] pixel_y_counter;
+    generate
+        if (FBUF_DATA_WIDTH != 8) begin
+            invalid_fbuf_data_width();
+        end
+    endgenerate
+
+    reg [FBUF_ADDR_WIDTH - 1 : 0] address_counter;
+    reg [12:0] pixel_x_counter;
+    reg [12:0] pixel_y_counter;
 
     always @(posedge clk) begin
         if (!rst_n) begin
@@ -44,10 +52,10 @@ module test_pattern_generator #(
         end else begin
             pixel_fbuf_address <= address_counter;
             pixel_fbuf_wr_en <= 1;
-            if (pixel_x_counter[4:0] == 5'b10000 | pixel_y_counter[4:0] == 5'b10000) begin
-                pixel_fbuf_color <= 12'hf00;
+            if (pixel_x_counter[4:0] == 5'b10000 || pixel_y_counter[4:0] == 5'b10000) begin
+                pixel_fbuf_color <= 8'b11100000;
             end else begin
-                pixel_fbuf_color <= 12'h00f;
+                pixel_fbuf_color <= 8'b00000011;
             end
         end
     end

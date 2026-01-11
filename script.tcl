@@ -1,3 +1,33 @@
+set output_resolution "800x600"
+
+if {$output_resolution == "640x480"} {
+  set param_fbuf_addr_width 19;
+  set param_fbuf_data_width 8;
+  set param_fbuf2rgb_scaling_factor 1;
+  set param_frame_width 640;
+  set param_frame_height 480;
+} elseif {$output_resolution == "800x600"} {
+  set param_fbuf_addr_width 17;
+  set param_fbuf_data_width 8;
+  set param_fbuf2rgb_scaling_factor 2;
+  set param_frame_width 800;
+  set param_frame_height 600;
+} elseif {$output_resolution == "1280x720"} {
+  set param_fbuf_addr_width 18;
+  set param_fbuf_data_width 8;
+  set param_fbuf2rgb_scaling_factor 2;
+  set param_frame_width 1280;
+  set param_frame_height 720;
+} elseif {$output_resolution == "1920x1080"} {
+  set param_fbuf_addr_width 17;
+  set param_fbuf_data_width 8;
+  set param_fbuf2rgb_scaling_factor 4;
+  set param_frame_width 1920;
+  set param_frame_height 1080;
+} else {
+  error "Invalid output resolution"
+}
+
 set script_location [file normalize [info script]]
 set project_folder [file dirname $script_location]
 set project_folder_split [split $project_folder /]
@@ -57,16 +87,90 @@ set_property -dict [list \
   CONFIG.PCW_USB0_PERIPHERAL_ENABLE {0} \
 ] [get_bd_cells processing_system7_0]
 
+if {$output_resolution == "640x480"} {
+  set_property -dict [list \
+    CONFIG.CLKOUT1_JITTER {319.783} \
+    CONFIG.CLKOUT1_PHASE_ERROR {246.739} \
+    CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {25.175} \
+    CONFIG.MMCM_CLKFBOUT_MULT_F {36.375} \
+    CONFIG.MMCM_CLKOUT0_DIVIDE_F {36.125} \
+    CONFIG.MMCM_DIVCLK_DIVIDE {4} \
+    CONFIG.RESET_PORT {resetn} \
+    CONFIG.RESET_TYPE {ACTIVE_LOW} \
+  ] [get_bd_cells clk_wiz_0]
+  set_property -dict [list \
+    CONFIG.kClkPrimitive {MMCM} \
+    CONFIG.kClkRange {3} \
+  ] [get_bd_cells rgb2dvi_0]
+} elseif {$output_resolution == "800x600"} {
+  set_property -dict [list \
+    CONFIG.CLKOUT1_JITTER {159.371} \
+    CONFIG.CLKOUT1_PHASE_ERROR {98.575} \
+    CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {40} \
+    CONFIG.MMCM_CLKFBOUT_MULT_F {10.000} \
+    CONFIG.MMCM_CLKOUT0_DIVIDE_F {25.000} \
+    CONFIG.MMCM_DIVCLK_DIVIDE {1} \
+    CONFIG.RESET_PORT {resetn} \
+    CONFIG.RESET_TYPE {ACTIVE_LOW} \
+  ] [get_bd_cells clk_wiz_0]
+  set_property -dict [list \
+    CONFIG.kClkPrimitive {MMCM} \
+    CONFIG.kClkRange {3} \
+  ] [get_bd_cells rgb2dvi_0]
+} elseif {$output_resolution == "1280x720"} {
+  set_property -dict [list \
+    CONFIG.CLKOUT1_JITTER {245.495} \
+    CONFIG.CLKOUT1_PHASE_ERROR {245.344} \
+    CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {74.25} \
+    CONFIG.MMCM_CLKFBOUT_MULT_F {37.125} \
+    CONFIG.MMCM_CLKOUT0_DIVIDE_F {12.500} \
+    CONFIG.MMCM_DIVCLK_DIVIDE {4} \
+    CONFIG.RESET_PORT {resetn} \
+    CONFIG.RESET_TYPE {ACTIVE_LOW} \
+  ] [get_bd_cells clk_wiz_0]
+  set_property -dict [list \
+    CONFIG.kClkPrimitive {MMCM} \
+    CONFIG.kClkRange {3} \
+  ] [get_bd_cells rgb2dvi_0]
+} elseif {$output_resolution == "1920x1080"} {
+  set_property -dict [list \
+    CONFIG.CLKOUT1_JITTER {217.614} \
+    CONFIG.CLKOUT1_PHASE_ERROR {245.344} \
+    CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {148.5} \
+    CONFIG.MMCM_CLKFBOUT_MULT_F {37.125} \
+    CONFIG.MMCM_CLKOUT0_DIVIDE_F {6.250} \
+    CONFIG.MMCM_DIVCLK_DIVIDE {4} \
+    CONFIG.RESET_PORT {resetn} \
+    CONFIG.RESET_TYPE {ACTIVE_LOW} \
+  ] [get_bd_cells clk_wiz_0]
+  set_property -dict [list \
+    CONFIG.kClkPrimitive {MMCM} \
+    CONFIG.kClkRange {1} \
+  ] [get_bd_cells rgb2dvi_0]
+}
+
 set_property -dict [list \
-  CONFIG.CLKOUT1_JITTER {217.614} \
-  CONFIG.CLKOUT1_PHASE_ERROR {245.344} \
-  CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {148.5} \
-  CONFIG.MMCM_CLKFBOUT_MULT_F {37.125} \
-  CONFIG.MMCM_CLKOUT0_DIVIDE_F {6.250} \
-  CONFIG.MMCM_DIVCLK_DIVIDE {4} \
-  CONFIG.RESET_PORT {resetn} \
-  CONFIG.RESET_TYPE {ACTIVE_LOW} \
-] [get_bd_cells clk_wiz_0]
+  CONFIG.ADDR_WIDTH ${param_fbuf_addr_width} \
+  CONFIG.DATA_WIDTH ${param_fbuf_data_width} \
+  CONFIG.FRAME_HEIGHT ${param_frame_height} \
+  CONFIG.FRAME_WIDTH ${param_frame_width} \
+  CONFIG.SCALING_FACTOR ${param_fbuf2rgb_scaling_factor} \
+] [get_bd_cells framebuffer_0]
+
+set_property -dict [list \
+  CONFIG.FRAME_HEIGHT ${param_frame_height} \
+  CONFIG.FRAME_WIDTH ${param_frame_width} \
+  CONFIG.SCALING_FACTOR ${param_fbuf2rgb_scaling_factor} \
+  CONFIG.FBUF_ADDR_WIDTH ${param_fbuf_addr_width} \
+] [get_bd_cells test_pattern_generat_0]
+
+set_property -dict [list \
+  CONFIG.RESOLUTION ${param_frame_height} \
+  CONFIG.SCALING_FACTOR ${param_fbuf2rgb_scaling_factor} \
+  CONFIG.FBUF_ADDR_WIDTH ${param_fbuf_addr_width} \
+] [get_bd_cells fbuf2rgb_0]
+
+set_property CONFIG.FBUF_DATA_WIDTH ${param_fbuf_data_width} [get_bd_cells color_converter_0]
 
 set_property CONFIG.kRstActiveHigh {false} [get_bd_cells rgb2dvi_0]
 
@@ -110,4 +214,3 @@ update_compile_order -fileset sources_1
 create_run synthesis1 -flow {Vivado Synthesis 2025}
 create_run implementation1 -parent_run synthesis1 -flow {Vivado Implementation 2025}
 current_run [get_runs synthesis1]
-

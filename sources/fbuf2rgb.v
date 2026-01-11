@@ -19,11 +19,12 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-// Use 4x upscaling from framebuffer to limit BRAM use
+// Use 2x-4x upscaling (for bigger resolutions) from framebuffer to limit BRAM use
 module fbuf2rgb
 #(
-    parameter RESOLUTION = 1080,
-    parameter SCALING_FACTOR = 4,
+    parameter FRAME_HEIGHT = 480,
+    parameter SCALING_FACTOR = 1,
+    parameter FBUF_ADDR_WIDTH = 19,
     parameter CONTROL_DELAY = 1 // 1 extra delay is added in code to compensate for pixel address calculation delay
 ) (
     input wire clk,
@@ -32,13 +33,13 @@ module fbuf2rgb
     output wire vsync,
     output wire vde,
     output wire eof,
-    output wire [16:0] pixel_fbuf_address,
+    output wire [FBUF_ADDR_WIDTH - 1 : 0] pixel_fbuf_address,
     output wire [12:0] pixel_x,
     output wire [12:0] pixel_y
     );
 
     generate
-        if (RESOLUTION == 1080) begin : F_PROPS
+        if (FRAME_HEIGHT == 1080) begin : F_PROPS
             // Clock: 148.5 MHz
             localparam FRAME_H = 1920;
             localparam FRAME_H_FRONT_PORCH = 88;
@@ -50,7 +51,7 @@ module fbuf2rgb
             localparam FRAME_V_BACK_PORCH = 36;
             localparam H_SYNC_ACTIVE_LOW = 0;
             localparam V_SYNC_ACTIVE_LOW = 0;
-        end else if (RESOLUTION == 720) begin : F_PROPS
+        end else if (FRAME_HEIGHT == 720) begin : F_PROPS
             // Clock: 74.25 MHz
             localparam FRAME_H = 1280;
             localparam FRAME_H_FRONT_PORCH = 110;
@@ -62,7 +63,7 @@ module fbuf2rgb
             localparam FRAME_V_BACK_PORCH = 20;
             localparam H_SYNC_ACTIVE_LOW = 0;
             localparam V_SYNC_ACTIVE_LOW = 0;
-        end else if (RESOLUTION == 600) begin: F_PROPS
+        end else if (FRAME_HEIGHT == 600) begin: F_PROPS
             // Clock: 40 MHz
             localparam FRAME_H = 800;
             localparam FRAME_H_FRONT_PORCH = 40;
@@ -74,7 +75,7 @@ module fbuf2rgb
             localparam FRAME_V_BACK_PORCH = 23;
             localparam H_SYNC_ACTIVE_LOW = 0;
             localparam V_SYNC_ACTIVE_LOW = 0;
-        end else if (RESOLUTION == 480) begin: F_PROPS
+        end else if (FRAME_HEIGHT == 480) begin: F_PROPS
             // Clock: 25.175 MHz
             localparam FRAME_H = 640;
             localparam FRAME_H_FRONT_PORCH = 8;
@@ -125,7 +126,7 @@ module fbuf2rgb
     reg [CONTROL_DELAY : 0] vsync_int;
     reg [12:0] pixel_x_int [CONTROL_DELAY : 0];
     reg [12:0] pixel_y_int [CONTROL_DELAY : 0];
-    reg [16:0] pixel_fbuf_address_int;
+    reg [FBUF_ADDR_WIDTH - 1 : 0] pixel_fbuf_address_int;
     
     
     integer i;
