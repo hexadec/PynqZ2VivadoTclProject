@@ -19,7 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-// Use 8x upscaling from framebuffer to limit BRAM use
+// Use 4x upscaling from framebuffer to limit BRAM use
 module fbuf2rgb
 #(
     parameter RESOLUTION = 1080,
@@ -72,6 +72,18 @@ module fbuf2rgb
             localparam FRAME_V_FRONT_PORCH = 1;
             localparam FRAME_V_SYNC = 4;
             localparam FRAME_V_BACK_PORCH = 23;
+            localparam H_SYNC_ACTIVE_LOW = 0;
+            localparam V_SYNC_ACTIVE_LOW = 0;
+        end else if (RESOLUTION == 480) begin: F_PROPS
+            // Clock: 25.175 MHz
+            localparam FRAME_H = 640;
+            localparam FRAME_H_FRONT_PORCH = 8;
+            localparam FRAME_H_SYNC = 96;
+            localparam FRAME_H_BACK_PORCH = 40;
+            localparam FRAME_V = 480;
+            localparam FRAME_V_FRONT_PORCH = 2;
+            localparam FRAME_V_SYNC = 2;
+            localparam FRAME_V_BACK_PORCH = 25;
             localparam H_SYNC_ACTIVE_LOW = 0;
             localparam V_SYNC_ACTIVE_LOW = 0;
         end else begin
