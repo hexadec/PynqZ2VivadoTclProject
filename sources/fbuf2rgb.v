@@ -151,7 +151,7 @@ module fbuf2rgb
             for (j = 1; j < CONTROL_DELAY + 1; j = j + 1) begin
                 pixel_x_int[j] <= pixel_x_int[j - 1];
             end
-            pixel_fbuf_address_int <= vde ? (h_counter / SCALING_FACTOR) * F_PROPS.FRAME_H / SCALING_FACTOR + (v_counter / SCALING_FACTOR) : 0;
+            pixel_fbuf_address_int <= vde ? (v_counter / SCALING_FACTOR) * F_PROPS.FRAME_V / SCALING_FACTOR + (h_counter / SCALING_FACTOR) : 0;
         end
     end
     
