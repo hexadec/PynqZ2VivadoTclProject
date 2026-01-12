@@ -55,6 +55,11 @@ file mkdir "${project_folder}/block_design"
 create_bd_design -dir "${project_folder}/block_design" design_1
 update_compile_order -fileset sources_1
 
+set_property SOURCE_SET sources_1 [get_filesets sim_1]
+add_files -fileset sim_1 "${project_folder}/testbench/tb_color_converter.sv"
+add_files -fileset sim_1 "${project_folder}/testbench/tb_fbuf2rgb.sv"
+update_compile_order -fileset sim_1
+
 set_property ip_repo_paths "${project_folder}/vivado-library" [current_project]
 update_ip_catalog
 

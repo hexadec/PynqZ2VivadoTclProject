@@ -38,68 +38,177 @@ module fbuf2rgb
     output wire [12:0] pixel_y
     );
 
-    generate
-        if (FRAME_HEIGHT == 1080) begin : F_PROPS
-            // Clock: 148.5 MHz
-            localparam FRAME_H = 1920;
-            localparam FRAME_H_FRONT_PORCH = 88;
-            localparam FRAME_H_SYNC = 44;
-            localparam FRAME_H_BACK_PORCH = 148;
-            localparam FRAME_V = 1080;
-            localparam FRAME_V_FRONT_PORCH = 4;
-            localparam FRAME_V_SYNC = 5;
-            localparam FRAME_V_BACK_PORCH = 36;
-            localparam H_SYNC_ACTIVE_LOW = 0;
-            localparam V_SYNC_ACTIVE_LOW = 0;
-        end else if (FRAME_HEIGHT == 720) begin : F_PROPS
-            // Clock: 74.25 MHz
-            localparam FRAME_H = 1280;
-            localparam FRAME_H_FRONT_PORCH = 110;
-            localparam FRAME_H_SYNC = 40;
-            localparam FRAME_H_BACK_PORCH = 220;
-            localparam FRAME_V = 720;
-            localparam FRAME_V_FRONT_PORCH = 5;
-            localparam FRAME_V_SYNC = 5;
-            localparam FRAME_V_BACK_PORCH = 20;
-            localparam H_SYNC_ACTIVE_LOW = 0;
-            localparam V_SYNC_ACTIVE_LOW = 0;
-        end else if (FRAME_HEIGHT == 600) begin: F_PROPS
-            // Clock: 40 MHz
-            localparam FRAME_H = 800;
-            localparam FRAME_H_FRONT_PORCH = 40;
-            localparam FRAME_H_SYNC = 128;
-            localparam FRAME_H_BACK_PORCH = 88;
-            localparam FRAME_V = 600;
-            localparam FRAME_V_FRONT_PORCH = 1;
-            localparam FRAME_V_SYNC = 4;
-            localparam FRAME_V_BACK_PORCH = 23;
-            localparam H_SYNC_ACTIVE_LOW = 0;
-            localparam V_SYNC_ACTIVE_LOW = 0;
-        end else if (FRAME_HEIGHT == 480) begin: F_PROPS
-            // Clock: 25.175 MHz
-            localparam FRAME_H = 640;
-            localparam FRAME_H_FRONT_PORCH = 8;
-            localparam FRAME_H_SYNC = 96;
-            localparam FRAME_H_BACK_PORCH = 40;
-            localparam FRAME_V = 480;
-            localparam FRAME_V_FRONT_PORCH = 2;
-            localparam FRAME_V_SYNC = 2;
-            localparam FRAME_V_BACK_PORCH = 25;
-            localparam H_SYNC_ACTIVE_LOW = 0;
-            localparam V_SYNC_ACTIVE_LOW = 0;
+    function integer frame_h;
+        input integer value;
+        if (value == 1080) begin
+            frame_h = 1920;
+        end else if (value == 720) begin
+            frame_h = 1280;
+        end else if (value == 600) begin
+            frame_h = 800;
+        end else if (value == 480) begin
+            frame_h = 640;
         end else begin
-            invalid_fbuf2rgb_resolution();
+            frame_h = 0;
         end
-    endgenerate
+    endfunction
+
+    function integer frame_h_front_porch;
+        input integer value;
+        if (value == 1080) begin
+            frame_h_front_porch = 88;
+        end else if (value == 720) begin
+            frame_h_front_porch = 110;
+        end else if (value == 600) begin
+            frame_h_front_porch = 40;
+        end else if (value == 480) begin
+            frame_h_front_porch = 8;
+        end else begin
+            frame_h_front_porch = 0;
+        end
+    endfunction
+
+    function integer frame_h_sync;
+        input integer value;
+        if (value == 1080) begin
+            frame_h_sync = 44;
+        end else if (value == 720) begin
+            frame_h_sync = 40;
+        end else if (value == 600) begin
+            frame_h_sync = 128;
+        end else if (value == 480) begin
+            frame_h_sync = 96;
+        end else begin
+            frame_h_sync = 0;
+        end
+    endfunction
+
+    function integer frame_h_back_porch;
+        input integer value;
+        if (value == 1080) begin
+            frame_h_back_porch = 148;
+        end else if (value == 720) begin
+            frame_h_back_porch = 220;
+        end else if (value == 600) begin
+            frame_h_back_porch = 88;
+        end else if (value == 480) begin
+            frame_h_back_porch = 40;
+        end else begin
+            frame_h_back_porch = 0;
+        end
+    endfunction
+
+
+    function integer frame_v;
+        input integer value;
+        if (value == 1080) begin
+            frame_v = 1080;
+        end else if (value == 720) begin
+            frame_v = 720;
+        end else if (value == 600) begin
+            frame_v = 600;
+        end else if (value == 480) begin
+            frame_v = 480;
+        end else begin
+            frame_v = 0;
+        end
+    endfunction
+
+    function integer frame_v_front_porch;
+        input integer value;
+        if (value == 1080) begin
+            frame_v_front_porch = 4;
+        end else if (value == 720) begin
+            frame_v_front_porch = 5;
+        end else if (value == 600) begin
+            frame_v_front_porch = 1;
+        end else if (value == 480) begin
+            frame_v_front_porch = 2;
+        end else begin
+            frame_v_front_porch = 0;
+        end
+    endfunction
+
+    function integer frame_v_sync;
+        input integer value;
+        if (value == 1080) begin
+            frame_v_sync = 5;
+        end else if (value == 720) begin
+            frame_v_sync = 5;
+        end else if (value == 600) begin
+            frame_v_sync = 4;
+        end else if (value == 480) begin
+            frame_v_sync = 2;
+        end else begin
+            frame_v_sync = 0;
+        end
+    endfunction
+
+    function integer frame_v_back_porch;
+        input integer value;
+        if (value == 1080) begin
+            frame_v_back_porch = 36;
+        end else if (value == 720) begin
+            frame_v_back_porch = 20;
+        end else if (value == 600) begin
+            frame_v_back_porch = 23;
+        end else if (value == 480) begin
+            frame_v_back_porch = 25;
+        end else begin
+            frame_v_back_porch = 0;
+        end
+    endfunction
+
+
+    function integer h_sync_active_low;
+        input integer value;
+        if (value == 1080) begin
+            h_sync_active_low = 0;
+        end else if (value == 720) begin
+            h_sync_active_low = 0;
+        end else if (value == 600) begin
+            h_sync_active_low = 0;
+        end else if (value == 480) begin
+            h_sync_active_low = 0;
+        end else begin
+            h_sync_active_low = 0;
+        end
+    endfunction
+
+    function integer v_sync_active_low;
+        input integer value;
+        if (value == 1080) begin
+            v_sync_active_low = 0;
+        end else if (value == 720) begin
+            v_sync_active_low = 0;
+        end else if (value == 600) begin
+            v_sync_active_low = 0;
+        end else if (value == 480) begin
+            v_sync_active_low = 0;
+        end else begin
+            v_sync_active_low = 0;
+        end
+    endfunction
+
+    localparam FRAME_H = frame_h(FRAME_HEIGHT);
+    localparam FRAME_H_FRONT_PORCH = frame_h_front_porch(FRAME_HEIGHT);
+    localparam FRAME_H_SYNC = frame_h_sync(FRAME_HEIGHT);
+    localparam FRAME_H_BACK_PORCH = frame_h_back_porch(FRAME_HEIGHT);
+    localparam FRAME_V = frame_v(FRAME_HEIGHT);
+    localparam FRAME_V_FRONT_PORCH = frame_v_front_porch(FRAME_HEIGHT);
+    localparam FRAME_V_SYNC = frame_v_sync(FRAME_HEIGHT);
+    localparam FRAME_V_BACK_PORCH = frame_v_back_porch(FRAME_HEIGHT);
+    localparam H_SYNC_ACTIVE_LOW = h_sync_active_low(FRAME_HEIGHT);
+    localparam V_SYNC_ACTIVE_LOW = v_sync_active_low(FRAME_HEIGHT);
     
-    localparam FRAME_H_TOTAL = F_PROPS.FRAME_H + F_PROPS.FRAME_H_FRONT_PORCH + F_PROPS.FRAME_H_SYNC + F_PROPS.FRAME_H_BACK_PORCH;
-    localparam FRAME_V_TOTAL = F_PROPS.FRAME_V + F_PROPS.FRAME_V_FRONT_PORCH + F_PROPS.FRAME_V_SYNC + F_PROPS.FRAME_V_BACK_PORCH;
+    localparam FRAME_H_TOTAL = FRAME_H + FRAME_H_FRONT_PORCH + FRAME_H_SYNC + FRAME_H_BACK_PORCH;
+    localparam FRAME_V_TOTAL = FRAME_V + FRAME_V_FRONT_PORCH + FRAME_V_SYNC + FRAME_V_BACK_PORCH;
     
-    localparam FRAME_H_SYNC_START = F_PROPS.FRAME_H + F_PROPS.FRAME_H_FRONT_PORCH;
-    localparam FRAME_V_SYNC_START = F_PROPS.FRAME_V + F_PROPS.FRAME_V_FRONT_PORCH;
+    localparam FRAME_H_SYNC_START = FRAME_H + FRAME_H_FRONT_PORCH;
+    localparam FRAME_V_SYNC_START = FRAME_V + FRAME_V_FRONT_PORCH;
     
-    localparam FRAME_H_SYNC_END = F_PROPS.FRAME_H + F_PROPS.FRAME_H_FRONT_PORCH + F_PROPS.FRAME_H_SYNC;
-    localparam FRAME_V_SYNC_END = F_PROPS.FRAME_V + F_PROPS.FRAME_V_FRONT_PORCH + F_PROPS.FRAME_V_SYNC;
+    localparam FRAME_H_SYNC_END = FRAME_H + FRAME_H_FRONT_PORCH + FRAME_H_SYNC;
+    localparam FRAME_V_SYNC_END = FRAME_V + FRAME_V_FRONT_PORCH + FRAME_V_SYNC;
     
     reg [12:0] h_counter;
     reg [12:0] v_counter;
@@ -142,16 +251,16 @@ module fbuf2rgb
                 pixel_y_int[i] <= 0;
             end
         end else begin
-            vde_int <= {vde_int[CONTROL_DELAY - 1 : 0], h_counter < F_PROPS.FRAME_H && v_counter < F_PROPS.FRAME_V};
-            eof_int <= {eof_int[CONTROL_DELAY - 1 : 0], v_counter >= F_PROPS.FRAME_V};
-            hsync_int <= {hsync_int[CONTROL_DELAY - 1 : 0], F_PROPS.H_SYNC_ACTIVE_LOW ^ (h_counter >= FRAME_H_SYNC_START && h_counter < FRAME_H_SYNC_END)};
-            vsync_int <= {vsync_int[CONTROL_DELAY - 1 : 0], F_PROPS.V_SYNC_ACTIVE_LOW ^ (v_counter >= FRAME_V_SYNC_START && v_counter < FRAME_V_SYNC_END)};
+            vde_int <= {vde_int[CONTROL_DELAY - 1 : 0], h_counter < FRAME_H && v_counter < FRAME_V};
+            eof_int <= {eof_int[CONTROL_DELAY - 1 : 0], v_counter >= FRAME_V};
+            hsync_int <= {hsync_int[CONTROL_DELAY - 1 : 0], H_SYNC_ACTIVE_LOW ^ (h_counter >= FRAME_H_SYNC_START && h_counter < FRAME_H_SYNC_END)};
+            vsync_int <= {vsync_int[CONTROL_DELAY - 1 : 0], V_SYNC_ACTIVE_LOW ^ (v_counter >= FRAME_V_SYNC_START && v_counter < FRAME_V_SYNC_END)};
             pixel_x_int[0] <= vde ? h_counter : 0;
             pixel_y_int[0] <= vde ? v_counter : 0;
             for (j = 1; j < CONTROL_DELAY + 1; j = j + 1) begin
                 pixel_x_int[j] <= pixel_x_int[j - 1];
             end
-            pixel_fbuf_address_int <= vde ? (v_counter / SCALING_FACTOR) * F_PROPS.FRAME_V / SCALING_FACTOR + (h_counter / SCALING_FACTOR) : 0;
+            pixel_fbuf_address_int <= vde ? (v_counter / SCALING_FACTOR) * FRAME_V / SCALING_FACTOR + (h_counter / SCALING_FACTOR) : 0;
         end
     end
     
