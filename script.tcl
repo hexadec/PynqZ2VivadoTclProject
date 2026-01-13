@@ -208,7 +208,7 @@ connect_bd_net [get_bd_pins fbuf2rgb_0/hsync] [get_bd_pins rgb2dvi_0/vid_pHSync]
 connect_bd_net [get_bd_pins fbuf2rgb_0/vsync] [get_bd_pins rgb2dvi_0/vid_pVSync]
 connect_bd_net [get_bd_pins fbuf2rgb_0/vde] [get_bd_pins rgb2dvi_0/vid_pVDE]
 connect_bd_net [get_bd_pins fbuf2rgb_0/pixel_fbuf_address] [get_bd_pins framebuffer_0/addr_rd]
-connect_bd_net [get_bd_pins fbuf2rgb_0/vde] [get_bd_pins framebuffer_0/en_rd]
+connect_bd_net [get_bd_pins fbuf2rgb_0/pixel_fbuf_address_valid] [get_bd_pins framebuffer_0/en_rd]
 regenerate_bd_layout
 save_bd_design
 make_wrapper -files [get_files "${project_folder}/block_design/design_1/design_1.bd"] -top
