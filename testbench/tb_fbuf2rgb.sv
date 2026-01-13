@@ -1,6 +1,6 @@
 module tb_fbuf2rgb;
 
-localparam FRAME_HEIGHT = 8;
+localparam FRAME_HEIGHT = 4;
 localparam SCALING_FACTOR = 1;
 localparam FBUF_ADDR_WIDTH = 8;
 localparam CONTROL_DELAY = 1;
@@ -40,7 +40,12 @@ initial begin
     assert(eof == 0);
     assert(hsync == 0);
     assert(vsync == 0);
-    rst_n = 0;
+    rst_n = 1;
+    repeat(100) begin
+        #10
+        $display("X: %d, Y: %d, VDE: %d, HSYNC: %d, VSYNC: %d, EOF: %d", pixel_x, pixel_y, vde, hsync, vsync, eof);
+        $display("ADDR: %d", pixel_fbuf_address);
+    end
     $finish;
 end
 

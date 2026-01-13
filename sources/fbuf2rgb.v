@@ -38,7 +38,7 @@ module fbuf2rgb
     output wire [12:0] pixel_y
     );
 
-    function integer frame_h;
+    function reg [12:0] frame_h;
         input integer value;
         if (value == 1080) begin
             frame_h = 1920;
@@ -48,12 +48,14 @@ module fbuf2rgb
             frame_h = 800;
         end else if (value == 480) begin
             frame_h = 640;
+        end else if (value == 4) begin
+            frame_h = 8;
         end else begin
             frame_h = 0;
         end
     endfunction
 
-    function integer frame_h_front_porch;
+    function reg [12:0] frame_h_front_porch;
         input integer value;
         if (value == 1080) begin
             frame_h_front_porch = 88;
@@ -63,12 +65,14 @@ module fbuf2rgb
             frame_h_front_porch = 40;
         end else if (value == 480) begin
             frame_h_front_porch = 8;
+        end else if (value == 4) begin
+            frame_h_front_porch = 1;
         end else begin
             frame_h_front_porch = 0;
         end
     endfunction
 
-    function integer frame_h_sync;
+    function reg [12:0] frame_h_sync;
         input integer value;
         if (value == 1080) begin
             frame_h_sync = 44;
@@ -78,12 +82,14 @@ module fbuf2rgb
             frame_h_sync = 128;
         end else if (value == 480) begin
             frame_h_sync = 96;
+        end else if (value == 4) begin
+            frame_h_sync = 2;
         end else begin
             frame_h_sync = 0;
         end
     endfunction
 
-    function integer frame_h_back_porch;
+    function reg [12:0] frame_h_back_porch;
         input integer value;
         if (value == 1080) begin
             frame_h_back_porch = 148;
@@ -93,13 +99,15 @@ module fbuf2rgb
             frame_h_back_porch = 88;
         end else if (value == 480) begin
             frame_h_back_porch = 40;
+        end else if (value == 4) begin
+            frame_h_back_porch = 1;
         end else begin
             frame_h_back_porch = 0;
         end
     endfunction
 
 
-    function integer frame_v;
+    function reg [12:0] frame_v;
         input integer value;
         if (value == 1080) begin
             frame_v = 1080;
@@ -109,12 +117,14 @@ module fbuf2rgb
             frame_v = 600;
         end else if (value == 480) begin
             frame_v = 480;
+        end else if (value == 4) begin
+            frame_v = 4;
         end else begin
             frame_v = 0;
         end
     endfunction
 
-    function integer frame_v_front_porch;
+    function reg [12:0] frame_v_front_porch;
         input integer value;
         if (value == 1080) begin
             frame_v_front_porch = 4;
@@ -124,12 +134,14 @@ module fbuf2rgb
             frame_v_front_porch = 1;
         end else if (value == 480) begin
             frame_v_front_porch = 2;
+        end else if (value == 4) begin
+            frame_v_front_porch = 1;
         end else begin
             frame_v_front_porch = 0;
         end
     endfunction
 
-    function integer frame_v_sync;
+    function reg [12:0] frame_v_sync;
         input integer value;
         if (value == 1080) begin
             frame_v_sync = 5;
@@ -139,12 +151,14 @@ module fbuf2rgb
             frame_v_sync = 4;
         end else if (value == 480) begin
             frame_v_sync = 2;
+        end else if (value == 4) begin
+            frame_v_sync = 2;
         end else begin
             frame_v_sync = 0;
         end
     endfunction
 
-    function integer frame_v_back_porch;
+    function reg [12:0] frame_v_back_porch;
         input integer value;
         if (value == 1080) begin
             frame_v_back_porch = 36;
@@ -154,13 +168,15 @@ module fbuf2rgb
             frame_v_back_porch = 23;
         end else if (value == 480) begin
             frame_v_back_porch = 25;
+        end else if (value == 4) begin
+            frame_v_back_porch = 1;
         end else begin
             frame_v_back_porch = 0;
         end
     endfunction
 
 
-    function integer h_sync_active_low;
+    function reg h_sync_active_low;
         input integer value;
         if (value == 1080) begin
             h_sync_active_low = 0;
@@ -169,13 +185,15 @@ module fbuf2rgb
         end else if (value == 600) begin
             h_sync_active_low = 0;
         end else if (value == 480) begin
+            h_sync_active_low = 0;
+        end else if (value == 8) begin
             h_sync_active_low = 0;
         end else begin
             h_sync_active_low = 0;
         end
     endfunction
 
-    function integer v_sync_active_low;
+    function reg v_sync_active_low;
         input integer value;
         if (value == 1080) begin
             v_sync_active_low = 0;
@@ -184,6 +202,8 @@ module fbuf2rgb
         end else if (value == 600) begin
             v_sync_active_low = 0;
         end else if (value == 480) begin
+            v_sync_active_low = 0;
+        end else if (value == 8) begin
             v_sync_active_low = 0;
         end else begin
             v_sync_active_low = 0;
@@ -237,6 +257,7 @@ module fbuf2rgb
     reg [12:0] pixel_y_int [CONTROL_DELAY : 0];
     reg [FBUF_ADDR_WIDTH - 1 : 0] pixel_fbuf_address_int;
     
+    assign vde_int_0 = h_counter < FRAME_H && v_counter < FRAME_V;
     
     integer i;
     integer j;
@@ -251,16 +272,19 @@ module fbuf2rgb
                 pixel_y_int[i] <= 0;
             end
         end else begin
-            vde_int <= {vde_int[CONTROL_DELAY - 1 : 0], h_counter < FRAME_H && v_counter < FRAME_V};
+            //$display("H: %d, V: %d, VDE_INT: %b, HSYNC_INT: %b, VSYNC_INT: %b, EOF_INT: %b, ADDR_INT: %d", h_counter, v_counter, vde_int, hsync_int, vsync_int, eof_int, pixel_fbuf_address_int);
+            //$display("ADDR_H_COMP: %d, ADDR_V_COMP: %d",  (h_counter / SCALING_FACTOR), (v_counter / SCALING_FACTOR) * FRAME_H / SCALING_FACTOR);
+            vde_int <= {vde_int[CONTROL_DELAY - 1 : 0], vde_int_0};
             eof_int <= {eof_int[CONTROL_DELAY - 1 : 0], v_counter >= FRAME_V};
             hsync_int <= {hsync_int[CONTROL_DELAY - 1 : 0], H_SYNC_ACTIVE_LOW ^ (h_counter >= FRAME_H_SYNC_START && h_counter < FRAME_H_SYNC_END)};
             vsync_int <= {vsync_int[CONTROL_DELAY - 1 : 0], V_SYNC_ACTIVE_LOW ^ (v_counter >= FRAME_V_SYNC_START && v_counter < FRAME_V_SYNC_END)};
-            pixel_x_int[0] <= vde ? h_counter : 0;
-            pixel_y_int[0] <= vde ? v_counter : 0;
+            pixel_x_int[0] <= vde_int_0 ? h_counter : 0;
+            pixel_y_int[0] <= vde_int_0 ? v_counter : 0;
             for (j = 1; j < CONTROL_DELAY + 1; j = j + 1) begin
                 pixel_x_int[j] <= pixel_x_int[j - 1];
+                pixel_y_int[j] <= pixel_y_int[j - 1];
             end
-            pixel_fbuf_address_int <= vde ? (v_counter / SCALING_FACTOR) * FRAME_V / SCALING_FACTOR + (h_counter / SCALING_FACTOR) : 0;
+            pixel_fbuf_address_int <= vde_int_0 ? (v_counter / SCALING_FACTOR) * FRAME_H / SCALING_FACTOR + (h_counter / SCALING_FACTOR) : 0;
         end
     end
     
