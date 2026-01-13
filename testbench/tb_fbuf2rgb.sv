@@ -41,10 +41,9 @@ initial begin
     assert(hsync == 0);
     assert(vsync == 0);
     rst_n = 1;
-    repeat(100) begin
+    repeat(1000) begin
         #10
-        $display("X: %d, Y: %d, VDE: %d, HSYNC: %d, VSYNC: %d, EOF: %d", pixel_x, pixel_y, vde, hsync, vsync, eof);
-        $display("ADDR: %d", pixel_fbuf_address);
+        $display("ADDR: %d, X: %d, Y: %d, VDE: %d, HSYNC: %d, VSYNC: %d, EOF: %d", pixel_fbuf_address, pixel_x, pixel_y, vde, hsync, vsync, eof);
     end
     $finish;
 end

@@ -104,7 +104,7 @@ if {$output_resolution == "640x480"} {
     CONFIG.RESET_TYPE {ACTIVE_LOW} \
   ] [get_bd_cells clk_wiz_0]
   set_property -dict [list \
-    CONFIG.kClkPrimitive {MMCM} \
+    CONFIG.kClkPrimitive {PLL} \
     CONFIG.kClkRange {3} \
   ] [get_bd_cells rgb2dvi_0]
 } elseif {$output_resolution == "800x600"} {
@@ -119,7 +119,7 @@ if {$output_resolution == "640x480"} {
     CONFIG.RESET_TYPE {ACTIVE_LOW} \
   ] [get_bd_cells clk_wiz_0]
   set_property -dict [list \
-    CONFIG.kClkPrimitive {MMCM} \
+    CONFIG.kClkPrimitive {PLL} \
     CONFIG.kClkRange {3} \
   ] [get_bd_cells rgb2dvi_0]
 } elseif {$output_resolution == "1280x720"} {
@@ -134,7 +134,7 @@ if {$output_resolution == "640x480"} {
     CONFIG.RESET_TYPE {ACTIVE_LOW} \
   ] [get_bd_cells clk_wiz_0]
   set_property -dict [list \
-    CONFIG.kClkPrimitive {MMCM} \
+    CONFIG.kClkPrimitive {PLL} \
     CONFIG.kClkRange {3} \
   ] [get_bd_cells rgb2dvi_0]
 } elseif {$output_resolution == "1920x1080"} {
@@ -149,7 +149,7 @@ if {$output_resolution == "640x480"} {
     CONFIG.RESET_TYPE {ACTIVE_LOW} \
   ] [get_bd_cells clk_wiz_0]
   set_property -dict [list \
-    CONFIG.kClkPrimitive {MMCM} \
+    CONFIG.kClkPrimitive {PLL} \
     CONFIG.kClkRange {1} \
   ] [get_bd_cells rgb2dvi_0]
 }

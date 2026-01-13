@@ -25,7 +25,7 @@ module fbuf2rgb
     parameter FRAME_HEIGHT = 480,
     parameter SCALING_FACTOR = 1,
     parameter FBUF_ADDR_WIDTH = 19,
-    parameter CONTROL_DELAY = 1 // 1 extra delay is added in code to compensate for pixel address calculation delay
+    parameter CONTROL_DELAY = 2 // Compensate for pixel address calculation delay & BRAM access
 ) (
     input wire clk,
     input wire rst_n,
@@ -187,7 +187,7 @@ module fbuf2rgb
             h_sync_active_low = 0;
         end else if (value == 480) begin
             h_sync_active_low = 0;
-        end else if (value == 8) begin
+        end else if (value == 4) begin
             h_sync_active_low = 0;
         end else begin
             h_sync_active_low = 0;
@@ -204,7 +204,7 @@ module fbuf2rgb
             v_sync_active_low = 0;
         end else if (value == 480) begin
             v_sync_active_low = 0;
-        end else if (value == 8) begin
+        end else if (value == 4) begin
             v_sync_active_low = 0;
         end else begin
             v_sync_active_low = 0;
