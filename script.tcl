@@ -94,62 +94,54 @@ set_property -dict [list \
 
 if {$output_resolution == "640x480"} {
   set_property -dict [list \
-    CONFIG.CLKOUT1_JITTER {319.783} \
-    CONFIG.CLKOUT1_PHASE_ERROR {246.739} \
     CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {25.175} \
-    CONFIG.MMCM_CLKFBOUT_MULT_F {36.375} \
-    CONFIG.MMCM_CLKOUT0_DIVIDE_F {36.125} \
-    CONFIG.MMCM_DIVCLK_DIVIDE {4} \
-    CONFIG.RESET_PORT {resetn} \
-    CONFIG.RESET_TYPE {ACTIVE_LOW} \
-  ] [get_bd_cells clk_wiz_0]
-  set_property -dict [list \
-    CONFIG.kClkPrimitive {PLL} \
-    CONFIG.kClkRange {3} \
-  ] [get_bd_cells rgb2dvi_0]
-} elseif {$output_resolution == "800x600"} {
-  set_property -dict [list \
-    CONFIG.CLKOUT1_JITTER {159.371} \
-    CONFIG.CLKOUT1_PHASE_ERROR {98.575} \
-    CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {40} \
-    CONFIG.MMCM_CLKFBOUT_MULT_F {10.000} \
-    CONFIG.MMCM_CLKOUT0_DIVIDE_F {25.000} \
+    CONFIG.MMCM_CLKFBOUT_MULT_F {8.000} \
+    CONFIG.MMCM_CLKOUT1_DIVIDE_F {31.750} \
     CONFIG.MMCM_DIVCLK_DIVIDE {1} \
     CONFIG.RESET_PORT {resetn} \
     CONFIG.RESET_TYPE {ACTIVE_LOW} \
   ] [get_bd_cells clk_wiz_0]
   set_property -dict [list \
-    CONFIG.kClkPrimitive {PLL} \
+    CONFIG.kClkPrimitive {MMCM} \
+    CONFIG.kClkRange {3} \
+  ] [get_bd_cells rgb2dvi_0]
+} elseif {$output_resolution == "800x600"} {
+  set_property -dict [list \
+    CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {40} \
+    CONFIG.MMCM_CLKFBOUT_MULT_F {8.000} \
+    CONFIG.MMCM_CLKOUT1_DIVIDE_F {20.000} \
+    CONFIG.MMCM_DIVCLK_DIVIDE {1} \
+    CONFIG.RESET_PORT {resetn} \
+    CONFIG.RESET_TYPE {ACTIVE_LOW} \
+  ] [get_bd_cells clk_wiz_0]
+  set_property -dict [list \
+    CONFIG.kClkPrimitive {MMCM} \
     CONFIG.kClkRange {3} \
   ] [get_bd_cells rgb2dvi_0]
 } elseif {$output_resolution == "1280x720"} {
   set_property -dict [list \
-    CONFIG.CLKOUT1_JITTER {245.495} \
-    CONFIG.CLKOUT1_PHASE_ERROR {245.344} \
     CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {74.25} \
-    CONFIG.MMCM_CLKFBOUT_MULT_F {37.125} \
-    CONFIG.MMCM_CLKOUT0_DIVIDE_F {12.500} \
-    CONFIG.MMCM_DIVCLK_DIVIDE {4} \
+    CONFIG.MMCM_CLKFBOUT_MULT_F {14.850} \
+    CONFIG.MMCM_CLKOUT1_DIVIDE_F {10.000} \
+    CONFIG.MMCM_DIVCLK_DIVIDE {2} \
     CONFIG.RESET_PORT {resetn} \
     CONFIG.RESET_TYPE {ACTIVE_LOW} \
   ] [get_bd_cells clk_wiz_0]
   set_property -dict [list \
-    CONFIG.kClkPrimitive {PLL} \
+    CONFIG.kClkPrimitive {MMCM} \
     CONFIG.kClkRange {3} \
   ] [get_bd_cells rgb2dvi_0]
 } elseif {$output_resolution == "1920x1080"} {
   set_property -dict [list \
-    CONFIG.CLKOUT1_JITTER {217.614} \
-    CONFIG.CLKOUT1_PHASE_ERROR {245.344} \
     CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {148.5} \
-    CONFIG.MMCM_CLKFBOUT_MULT_F {37.125} \
-    CONFIG.MMCM_CLKOUT0_DIVIDE_F {6.250} \
-    CONFIG.MMCM_DIVCLK_DIVIDE {4} \
+    CONFIG.MMCM_CLKFBOUT_MULT_F {11.880} \
+    CONFIG.MMCM_CLKOUT1_DIVIDE_F {8.000} \
+    CONFIG.MMCM_DIVCLK_DIVIDE {1} \
     CONFIG.RESET_PORT {resetn} \
     CONFIG.RESET_TYPE {ACTIVE_LOW} \
   ] [get_bd_cells clk_wiz_0]
   set_property -dict [list \
-    CONFIG.kClkPrimitive {PLL} \
+    CONFIG.kClkPrimitive {MMCM} \
     CONFIG.kClkRange {1} \
   ] [get_bd_cells rgb2dvi_0]
 }
