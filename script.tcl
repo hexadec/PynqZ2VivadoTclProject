@@ -162,7 +162,8 @@ set_property -dict [list \
 ] [get_bd_cells test_pattern_generat_0]
 
 set_property -dict [list \
-  CONFIG.RESOLUTION ${param_frame_height} \
+  CONFIG.FRAME_HEIGHT ${param_frame_height} \
+  CONFIG.CONTROL_DELAY {2} \
   CONFIG.SCALING_FACTOR ${param_fbuf2rgb_scaling_factor} \
   CONFIG.FBUF_ADDR_WIDTH ${param_fbuf_addr_width} \
 ] [get_bd_cells fbuf2rgb_0]
@@ -177,8 +178,6 @@ connect_bd_net [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins clk_wiz
 connect_bd_net [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins test_pattern_generat_0/clk]
 connect_bd_net [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins framebuffer_0/clk_wr]
 connect_bd_net [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins clk_wiz_0/resetn]
-connect_bd_net [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins fbuf2rgb_0/rst_n]
-connect_bd_net [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins rgb2dvi_0/aRst_n]
 connect_bd_net [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins test_pattern_generat_0/rst_n]
 create_bd_port -dir O -from 3 -to 0 led
 connect_bd_net [get_bd_ports led] [get_bd_pins block_0/out_led]
@@ -190,6 +189,8 @@ connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins rgb2dvi_0/PixelClk]
 connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins framebuffer_0/clk_rd]
 connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins fbuf2rgb_0/clk]
 connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins color_converter_0/clk]
+connect_bd_net [get_bd_pins clk_wiz_0/locked] [get_bd_pins fbuf2rgb_0/rst_n]
+connect_bd_net [get_bd_pins clk_wiz_0/locked] [get_bd_pins rgb2dvi_0/aRst_n]
 connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_address] [get_bd_pins framebuffer_0/addr_wr]
 connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_wr_en] [get_bd_pins framebuffer_0/wrea]
 connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_wr_en] [get_bd_pins framebuffer_0/en_wr]
