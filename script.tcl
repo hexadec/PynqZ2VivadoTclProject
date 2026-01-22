@@ -50,6 +50,7 @@ add_files -fileset sources_1 "${project_folder}/sources/fbuf2rgb.v"
 add_files -fileset sources_1 "${project_folder}/sources/framebuffer.v"
 add_files -fileset sources_1 "${project_folder}/sources/color_converter.v"
 add_files -fileset sources_1 "${project_folder}/sources/test_pattern_generator.v"
+add_files -fileset sources_1 "${project_folder}/sources/axi4_lite_gpu.v"
 update_compile_order -fileset sources_1
 file mkdir "${project_folder}/block_design"
 create_bd_design -dir "${project_folder}/block_design" design_1
@@ -58,6 +59,7 @@ update_compile_order -fileset sources_1
 set_property SOURCE_SET sources_1 [get_filesets sim_1]
 add_files -fileset sim_1 "${project_folder}/testbench/tb_color_converter.sv"
 add_files -fileset sim_1 "${project_folder}/testbench/tb_fbuf2rgb.sv"
+add_files -fileset sim_1 "${project_folder}/testbench/tb_axi4_lite_gpu.sv"
 update_compile_order -fileset sim_1
 
 set_property ip_repo_paths "${project_folder}/vivado-library" [current_project]
