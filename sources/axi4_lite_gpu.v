@@ -39,6 +39,100 @@ module axi4_lite_gpu #(
 localparam RESP_OKAY = 2'b00;
 localparam RESP_SLVERR = 2'b10;
 
+reg write_transaction_ok;
+
+// Store write address and do handshake
+reg [AXI_DATA_WIDTH - 1 : 0] write_address;
+reg write_address_ok;
+reg s_axi_ctrl_awready_int;
+
+assign s_axi_ctrl_awready = !s_axi_ctrl_aresetn ? 0 : s_axi_ctrl_awready_int;
+
+always @(posedge s_axi_ctrl_aclk) begin
+    if (!s_axi_ctrl_aresetn) begin
+        write_address <= 0;
+        write_address_ok <= 0;
+        s_axi_ctrl_awready_int <= 0;
+    end else begin
+        if (write_transaction_ok) begin
+            write_address <= 0;
+            write_address_ok <= 0;
+            s_axi_ctrl_awready_int <= 0;
+        end else if (s_axi_ctrl_awvalid && !write_address_ok) begin
+            write_address <= s_axi_ctrl_awaddr;
+            write_address_ok <= 1;
+            s_axi_ctrl_awready_int <= 1;
+        end else begin
+            s_axi_ctrl_awready_int <= 0;
+        end
+    end
+end
+
+
+// Store write data and do handshake
+reg [AXI_DATA_WIDTH - 1 : 0] write_data;
+reg write_data_ok;
+reg s_axi_ctrl_wready_int;
+
+assign s_axi_ctrl_wready = !s_axi_ctrl_aresetn ? 0 : s_axi_ctrl_wready_int;
+
+always @(posedge s_axi_ctrl_aclk) begin
+    if (!s_axi_ctrl_aresetn) begin
+        write_data <= 0;
+        write_data_ok <= 0;
+        s_axi_ctrl_wready_int <= 0;
+    end else begin
+        if (write_transaction_ok) begin
+            write_data <= 0;
+            write_data_ok <= 0;
+            s_axi_ctrl_wready_int <= 0;
+        end if (s_axi_ctrl_wvalid && !write_data_ok) begin
+            write_data <= s_axi_ctrl_wdata;
+            write_data_ok <= 1;
+            s_axi_ctrl_wready_int <= 1;
+        end else begin
+            s_axi_ctrl_wready_int <= 0;
+        end
+    end
+end
+
+reg [1:0] write_response;
+reg write_response_ok;
+
+assign s_axi_ctrl_bresp = !s_axi_ctrl_aresetn ? 2'b00 : write_response;
+assign s_axi_ctrl_bvalid = !s_axi_ctrl_aresetn ? 0 : write_response_ok;
+
+// Handle write event when both write address & data channel handshake is done
+always @(posedge s_axi_ctrl_aclk) begin
+    if (!s_axi_ctrl_aresetn) begin
+        write_response <= 2'b00;
+        write_response_ok <= 0;
+    end else begin
+        if (write_transaction_ok) begin
+            write_response <= 2'b00;
+            write_response_ok <= 0;
+        end else if (write_address_ok && write_data_ok) begin
+            // TODO process data and respond accordingly
+            write_response <= RESP_OKAY;
+            write_response_ok <= 1;
+        end
+    end
+end
+
+// Mark write transaction as OK for one clock cycle when write response channel is ready
+always @(posedge s_axi_ctrl_aclk) begin
+    if (!s_axi_ctrl_aresetn) begin
+        write_transaction_ok <= 0;
+    end else begin
+        if (write_response_ok && s_axi_ctrl_bready) begin
+            write_transaction_ok <= 1;
+        end else begin
+            write_transaction_ok <= 0;
+        end
+    end
+end
+
+
 // During reset all xVALID signals must be LOW
 
 endmodule
