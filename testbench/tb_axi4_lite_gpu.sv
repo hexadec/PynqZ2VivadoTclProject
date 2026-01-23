@@ -74,10 +74,26 @@ axi4_lite_gpu #(
 
 always #5 clk = ~clk;
 
+always @(posedge clk) begin
+    if (!rst_n) begin
+        assert(!s_axi_ctrl_rvalid && !s_axi_ctrl_bvalid) else $error("All xVALID signals MUST be LOW during reset");
+    end
+end
+// assert property (@(posedge clk) !rst_n |-> !s_axi_ctrl_rvalid && !s_axi_ctrl_bvalid);
+
+always @(posedge clk) begin
+    if (!rst_n) begin
+        if (!(!s_axi_ctrl_arready && !s_axi_ctrl_awready && !s_axi_ctrl_wready)) begin
+            $error("All xVALID signals SHOULD be LOW during reset");
+        end
+    end
+end
+// assert property (@(posedge clk) !rst_n |-> !s_axi_ctrl_arready && !s_axi_ctrl_awready && !s_axi_ctrl_wready) else $error("All xVALID signals SHOULD be LOW during reset");
+
 initial begin
     rst_n = 0;
-    #10
-    // assert property (@(posedge clk) !rst_n |-> !s_axi_ctrl_wvalid && !s_axi_ctrl_bvalid);
+    #100
+    rst_n = 1;
     #100
     $finish;
 end
