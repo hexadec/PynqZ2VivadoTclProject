@@ -74,27 +74,40 @@ axi4_lite_gpu #(
 
 always #5 clk = ~clk;
 
-always @(posedge clk) begin
-    if (!rst_n) begin
-        assert(!s_axi_ctrl_rvalid && !s_axi_ctrl_bvalid) else $error("All xVALID signals MUST be LOW during reset");
-    end
-end
-// assert property (@(posedge clk) !rst_n |-> !s_axi_ctrl_rvalid && !s_axi_ctrl_bvalid);
+// always @(posedge clk) begin
+//     if (!rst_n) begin
+//         assert(!s_axi_ctrl_rvalid && !s_axi_ctrl_bvalid) else $error("All xVALID signals MUST be LOW during reset");
+//     end
+// end
+assert property (@(posedge clk) !rst_n |-> !s_axi_ctrl_rvalid && !s_axi_ctrl_bvalid);
 
-always @(posedge clk) begin
-    if (!rst_n) begin
-        if (!(!s_axi_ctrl_arready && !s_axi_ctrl_awready && !s_axi_ctrl_wready)) begin
-            $error("All xVALID signals SHOULD be LOW during reset");
-        end
-    end
-end
-// assert property (@(posedge clk) !rst_n |-> !s_axi_ctrl_arready && !s_axi_ctrl_awready && !s_axi_ctrl_wready) else $error("All xVALID signals SHOULD be LOW during reset");
+// always @(posedge clk) begin
+//     if (!rst_n) begin
+//         if (!(!s_axi_ctrl_arready && !s_axi_ctrl_awready && !s_axi_ctrl_wready)) begin
+//             $error("All xVALID signals SHOULD be LOW during reset");
+//         end
+//     end
+// end
+assert property (@(posedge clk) !rst_n |-> !s_axi_ctrl_arready && !s_axi_ctrl_awready && !s_axi_ctrl_wready) else $error("All xVALID signals SHOULD be LOW during reset");
 
 initial begin
     rst_n = 0;
     #100
     rst_n = 1;
-    #100
+    #10
+    s_axi_ctrl_araddr = 32'h01;
+    s_axi_ctrl_arvalid = 1;
+    #10
+    assert(s_axi_ctrl_arready) else $error("ARREADY MUST be HIGH after one clock cycle of ARVALID");
+    #30
+    s_axi_ctrl_arvalid = 0;
+    s_axi_ctrl_araddr = 32'h00;
+    assert(s_axi_ctrl_rvalid) else $error("RVALID MUST be HIGH");
+    assert(s_axi_ctrl_rresp == 2'b00) else $error("RRESP MUST be 2'b00");
+    assert(s_axi_ctrl_rdata == 32'hffffffff) else $error("RRESP MUST be 32'hffffffff");
+    s_axi_ctrl_rready = 1;
+    #10;
+    assert(s_axi_ctrl_rvalid) else $error("RVALID MUST be LOW");
     $finish;
 end
 
