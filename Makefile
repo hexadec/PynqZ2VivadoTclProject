@@ -7,11 +7,14 @@ $(project_name).xpr: script.tcl
 	@echo Building with Vivado...
 	${vivado_folder}/vivado -mode batch -source script.tcl -verbose
 
+bitstream: $(project_name).runs/implementation1/design_1_wrapper.bit;
+
 $(project_name).runs/implementation1/design_1_wrapper.bit: $(project_name).xpr bitstream.tcl
 	@echo Building with Vivado...
 	${vivado_folder}/vivado -mode batch -source bitstream.tcl -verbose
 
-bitstream: $(project_name).runs/implementation1/design_1_wrapper.bit
+simulate: $(project_name).xpr simulate.tcl
+	${vivado_folder}/vivado -mode batch -source simulate.tcl -verbose
 
 program: bitstream program_device.tcl
 	${vivado_folder}/vivado -mode batch -source program_device.tcl -verbose
