@@ -95,19 +95,43 @@ initial begin
     #100
     rst_n = 1;
     #10
+    $display("Starting read test...");
     s_axi_ctrl_araddr = 32'h01;
     s_axi_ctrl_arvalid = 1;
     #10
     assert(s_axi_ctrl_arready) else $error("ARREADY MUST be HIGH after one clock cycle of ARVALID");
-    #30
     s_axi_ctrl_arvalid = 0;
     s_axi_ctrl_araddr = 32'h00;
+    #30 // TODO: Modify according to expected behaviour
     assert(s_axi_ctrl_rvalid) else $error("RVALID MUST be HIGH");
-    assert(s_axi_ctrl_rresp == 2'b00) else $error("RRESP MUST be 2'b00");
+    assert(s_axi_ctrl_rresp == 2'b00) else $error("RRESP MUST be 2'b00 (RESP_OKAY)");
     assert(s_axi_ctrl_rdata == 32'hffffffff) else $error("RRESP MUST be 32'hffffffff");
     s_axi_ctrl_rready = 1;
-    #10;
-    assert(s_axi_ctrl_rvalid) else $error("RVALID MUST be LOW");
+    #10
+    assert(!s_axi_ctrl_rvalid) else $error("RVALID MUST be LOW");
+    #10
+    $display("Starting write test...");
+    s_axi_ctrl_awvalid = 1;
+    s_axi_ctrl_awaddr = 32'h01;
+    #10
+    assert(s_axi_ctrl_awready) else $error("AWREADY MUST be HIGH after one clock cycle of AWVALID");
+    s_axi_ctrl_awvalid = 0;
+    s_axi_ctrl_awaddr = 32'h00;
+    s_axi_ctrl_wvalid = 1;
+    s_axi_ctrl_wdata = 32'h01;
+    #10
+    assert(s_axi_ctrl_wready) else $error("WREADY MUST be HIGH after one clock cycle of WVALID");
+    s_axi_ctrl_wvalid = 0;
+    s_axi_ctrl_wdata = 32'h00;
+    #20 // TODO: Modify according to expected behaviour
+    assert(s_axi_ctrl_bvalid) else $error("BVALID MUST be HIGH");
+    assert(s_axi_ctrl_bresp == 2'b00) else $error("BRESP MUST be 2'b00 (RESP_OKAY)");
+    s_axi_ctrl_bready = 1;
+    #10
+    assert(!s_axi_ctrl_bvalid) else $error("BVALID MUST be LOW");
+    rst_n = 1;
+    #10
+    $display("Basic read and write test finished");
     $finish;
 end
 

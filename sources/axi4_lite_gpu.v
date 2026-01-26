@@ -76,9 +76,9 @@ reg [1:0] read_resp;
 reg read_processing_start;
 reg read_processing_done;
 
-assign s_axi_ctrl_rvalid = !s_axi_ctrl_aresetn ? 0 : read_data_ok;
-assign s_axi_ctrl_rdata = !s_axi_ctrl_aresetn ? 0 : read_data;
-assign s_axi_ctrl_rresp = !s_axi_ctrl_aresetn ? 0 : read_resp;
+assign s_axi_ctrl_rvalid = !s_axi_ctrl_aresetn ? 0 : (read_transaction_ok ? 0 : read_data_ok);
+assign s_axi_ctrl_rdata = !s_axi_ctrl_aresetn ? 0 : (read_transaction_ok ? 0 : read_data);
+assign s_axi_ctrl_rresp = !s_axi_ctrl_aresetn ? 0 : (read_transaction_ok ? 0 : read_resp);
 
 always @(posedge s_axi_ctrl_aclk) begin
     if (!s_axi_ctrl_aresetn) begin
@@ -189,8 +189,8 @@ reg write_response_ok;
 reg write_processing_start;
 reg write_processing_done;
 
-assign s_axi_ctrl_bresp = !s_axi_ctrl_aresetn ? 2'b00 : write_response;
-assign s_axi_ctrl_bvalid = !s_axi_ctrl_aresetn ? 0 : write_response_ok;
+assign s_axi_ctrl_bresp = !s_axi_ctrl_aresetn ? 2'b00 : (write_transaction_ok ? 0 : write_response);
+assign s_axi_ctrl_bvalid = !s_axi_ctrl_aresetn ? 0 : (write_transaction_ok ? 0 : write_response_ok);
 
 // Handle write event when both write address & data channel handshake is done
 always @(posedge s_axi_ctrl_aclk) begin
