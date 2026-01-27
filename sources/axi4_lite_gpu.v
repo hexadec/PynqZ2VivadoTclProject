@@ -59,7 +59,7 @@ always @(posedge s_axi_ctrl_aclk) begin
             read_address_ok <= 0;
             s_axi_ctrl_arready_int <= 0;
         end else if (s_axi_ctrl_arvalid && (!read_address_ok || read_transaction_ok)) begin
-            read_address <= s_axi_ctrl_awaddr;
+            read_address <= s_axi_ctrl_araddr;
             read_address_ok <= 1;
             s_axi_ctrl_arready_int <= 1;
         end else begin
@@ -85,8 +85,6 @@ always @(posedge s_axi_ctrl_aclk) begin
         read_data <= 0;
         read_resp <= 0;
         read_data_ok <= 0;
-        // Simulate processing
-        read_processing_done <= 0;
     end else begin
         if (read_transaction_ok) begin
             read_data <= 0;
@@ -95,18 +93,38 @@ always @(posedge s_axi_ctrl_aclk) begin
         end else if (read_address_ok) begin
             if (read_processing_done) begin
                 read_processing_start <= 0;
-                read_data <= 32'hffffffff;
+                read_data <= read_resp_int;
                 read_resp <= RESP_OKAY;
                 read_data_ok <= 1;
-                // Simulate
-                read_processing_done <= 0;
             end else if (!read_processing_start) begin
-                // TODO process read request and respond accordingly
                 read_processing_start <= 1;
-                // Simulate processing
-                read_processing_done <= 1;
             end else begin
                 read_processing_start <= 0;
+            end
+        end
+    end
+end
+
+// Process read requests
+reg [AXI_DATA_WIDTH - 1 : 0] read_resp_int;
+
+always @(posedge s_axi_ctrl_aclk) begin
+    if (!s_axi_ctrl_aresetn) begin
+        read_processing_done <= 0;
+        read_resp_int <= 0;
+    end else begin
+        if (read_transaction_ok) begin
+            read_processing_done <= 0;
+            read_resp_int <= 0;
+        end if (read_processing_start) begin
+            // Use 0x00 as status register
+            if (read_address == 0) begin
+                read_resp_int <= {28'h0, write_address_ok, write_data_ok, write_processing_start, write_processing_done};
+                read_processing_done <= 1;
+            end else begin
+                // TODO
+                read_resp_int <= 32'hffffffff;
+                read_processing_done <= 1;
             end
         end
     end
@@ -124,8 +142,6 @@ always @(posedge s_axi_ctrl_aclk) begin
         end
     end
 end
-
-
 
 reg write_transaction_ok;
 

@@ -102,7 +102,7 @@ initial begin
     assert(s_axi_ctrl_arready) else $error("ARREADY MUST be HIGH after one clock cycle of ARVALID");
     s_axi_ctrl_arvalid = 0;
     s_axi_ctrl_araddr = 32'h00;
-    #30 // TODO: Modify according to expected behaviour
+    #40 // TODO: Modify according to expected behaviour
     assert(s_axi_ctrl_rvalid) else $error("RVALID MUST be HIGH");
     assert(s_axi_ctrl_rresp == 2'b00) else $error("RRESP MUST be 2'b00 (RESP_OKAY)");
     assert(s_axi_ctrl_rdata == 32'hffffffff) else $error("RRESP MUST be 32'hffffffff");
