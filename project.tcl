@@ -51,6 +51,7 @@ add_files -fileset sources_1 "${project_folder}/sources/framebuffer.v"
 add_files -fileset sources_1 "${project_folder}/sources/color_converter.v"
 add_files -fileset sources_1 "${project_folder}/sources/test_pattern_generator.v"
 add_files -fileset sources_1 "${project_folder}/sources/axi4_lite_gpu.v"
+add_files -fileset sources_1 "${project_folder}/sources/axi4_lite_gpu_command_handler.sv"
 update_compile_order -fileset sources_1
 file mkdir "${project_folder}/block_design"
 create_bd_design -dir "${project_folder}/block_design" design_1

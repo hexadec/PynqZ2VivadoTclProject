@@ -36,15 +36,65 @@ module axi4_lite_gpu #(
     output [FBUF_DATA_WIDTH - 1 : 0] fbuf_data
 );
 
-localparam RESP_OKAY = 2'b00;
-localparam RESP_SLVERR = 2'b10;
 
+// Store read address from R channel and manage responses
 reg read_transaction_ok;
-
-// Store read address and do handshake
 reg [AXI_ADDRESS_WIDTH - 1 : 0] read_address;
 reg read_address_ok;
 reg s_axi_ctrl_arready_int;
+
+// Connection to AXI GPU command handler
+reg [AXI_DATA_WIDTH - 1 : 0] read_data;
+reg read_data_ok;
+reg [1:0] read_resp;
+reg read_processing_start;
+wire read_processing_done;
+wire [AXI_DATA_WIDTH - 1 : 0] read_data_int;
+wire read_resp_ok_int;
+
+// Connection to AXI GPU command handler
+reg [1:0] write_response;
+reg write_response_ok;
+wire write_processing_ok_int;
+reg write_processing_start;
+wire write_processing_done;
+
+// Store data and address from W/B channels and manage responses
+reg write_transaction_ok;
+reg [AXI_ADDRESS_WIDTH - 1 : 0] write_address;
+reg write_address_ok;
+reg s_axi_ctrl_awready_int;
+
+reg [AXI_DATA_WIDTH - 1 : 0] write_data;
+reg write_data_ok;
+reg s_axi_ctrl_wready_int;
+
+axi4_lite_gpu_command_handler #(
+    .FBUF_ADDR_WIDTH(FBUF_ADDR_WIDTH),
+    .FBUF_DATA_WIDTH(FBUF_DATA_WIDTH)
+) axi4_lite_gpu_command_handler_inst(
+    .clk(s_axi_ctrl_aclk),
+    .rst_n(s_axi_ctrl_aresetn),
+    .read_processing_start(read_processing_start),
+    .read_address(read_address),
+    .read_data(read_data_int),
+    .read_resp_ok(read_resp_ok_int),
+    .read_processing_done(read_processing_done),
+    .write_processing_start(write_processing_start),
+    .write_address(write_address),
+    .write_data(write_data),
+    .write_processing_ok(write_processing_ok_int),
+    .write_processing_done(write_processing_done),
+    .fbuf_en_wr(fbuf_en_wr),
+    .fbuf_wrea(fbuf_wrea),
+    .fbuf_addr(fbuf_addr),
+    .fbuf_data(fbuf_data)
+);
+
+localparam RESP_OKAY = 2'b00;
+localparam RESP_SLVERR = 2'b10;
+
+// Store read address and do handshake
 
 assign s_axi_ctrl_arready = !s_axi_ctrl_aresetn ? 0 : s_axi_ctrl_arready_int;
 
@@ -52,30 +102,27 @@ always @(posedge s_axi_ctrl_aclk) begin
     if (!s_axi_ctrl_aresetn) begin
         read_address <= 0;
         read_address_ok <= 0;
+        read_processing_start <= 0;
         s_axi_ctrl_arready_int <= 0;
     end else begin
         if (read_transaction_ok) begin
+            read_processing_start <= 0;
             read_address <= 0;
             read_address_ok <= 0;
             s_axi_ctrl_arready_int <= 0;
         end else if (s_axi_ctrl_arvalid && (!read_address_ok || read_transaction_ok)) begin
+            read_processing_start <= 1;
             read_address <= s_axi_ctrl_araddr;
             read_address_ok <= 1;
             s_axi_ctrl_arready_int <= 1;
         end else begin
+            read_processing_start <= 0;
             s_axi_ctrl_arready_int <= 0;
         end
     end
 end
 
 // Handle read event
-reg [AXI_DATA_WIDTH - 1 : 0] read_data;
-reg read_data_ok;
-reg [1:0] read_resp;
-
-reg read_processing_start;
-reg read_processing_done;
-
 assign s_axi_ctrl_rvalid = !s_axi_ctrl_aresetn ? 0 : (read_transaction_ok ? 0 : read_data_ok);
 assign s_axi_ctrl_rdata = !s_axi_ctrl_aresetn ? 0 : (read_transaction_ok ? 0 : read_data);
 assign s_axi_ctrl_rresp = !s_axi_ctrl_aresetn ? 0 : (read_transaction_ok ? 0 : read_resp);
@@ -90,45 +137,15 @@ always @(posedge s_axi_ctrl_aclk) begin
             read_data <= 0;
             read_resp <= 0;
             read_data_ok <= 0;
-        end else if (read_address_ok) begin
-            if (read_processing_done) begin
-                read_processing_start <= 0;
-                read_data <= read_resp_int;
-                read_resp <= RESP_OKAY;
-                read_data_ok <= 1;
-            end else if (!read_processing_start) begin
-                read_processing_start <= 1;
-            end else begin
-                read_processing_start <= 0;
-            end
+        end else if (read_processing_done) begin
+            read_data <= read_data_int;
+            read_resp <= read_resp_ok_int ? RESP_OKAY : RESP_SLVERR;
+            read_data_ok <= 1;
         end
     end
 end
 
 // Process read requests
-reg [AXI_DATA_WIDTH - 1 : 0] read_resp_int;
-
-always @(posedge s_axi_ctrl_aclk) begin
-    if (!s_axi_ctrl_aresetn) begin
-        read_processing_done <= 0;
-        read_resp_int <= 0;
-    end else begin
-        if (read_transaction_ok) begin
-            read_processing_done <= 0;
-            read_resp_int <= 0;
-        end if (read_processing_start) begin
-            // Use 0x00 as status register
-            if (read_address == 0) begin
-                read_resp_int <= {28'h0, write_address_ok, write_data_ok, write_processing_start, write_processing_done};
-                read_processing_done <= 1;
-            end else begin
-                // TODO
-                read_resp_int <= 32'hffffffff;
-                read_processing_done <= 1;
-            end
-        end
-    end
-end
 
 // Mark read transaction as OK for one clock cycle when read data channel is ready
 always @(posedge s_axi_ctrl_aclk) begin
@@ -143,13 +160,8 @@ always @(posedge s_axi_ctrl_aclk) begin
     end
 end
 
-reg write_transaction_ok;
 
 // Store write address and do handshake
-reg [AXI_ADDRESS_WIDTH - 1 : 0] write_address;
-reg write_address_ok;
-reg s_axi_ctrl_awready_int;
-
 assign s_axi_ctrl_awready = !s_axi_ctrl_aresetn ? 0 : s_axi_ctrl_awready_int;
 
 always @(posedge s_axi_ctrl_aclk) begin
@@ -174,10 +186,6 @@ end
 
 
 // Store write data and do handshake
-reg [AXI_DATA_WIDTH - 1 : 0] write_data;
-reg write_data_ok;
-reg s_axi_ctrl_wready_int;
-
 assign s_axi_ctrl_wready = !s_axi_ctrl_aresetn ? 0 : s_axi_ctrl_wready_int;
 
 always @(posedge s_axi_ctrl_aclk) begin
@@ -200,11 +208,6 @@ always @(posedge s_axi_ctrl_aclk) begin
     end
 end
 
-reg [1:0] write_response;
-reg write_response_ok;
-reg write_processing_start;
-reg write_processing_done;
-
 assign s_axi_ctrl_bresp = !s_axi_ctrl_aresetn ? 2'b00 : (write_transaction_ok ? 0 : write_response);
 assign s_axi_ctrl_bvalid = !s_axi_ctrl_aresetn ? 0 : (write_transaction_ok ? 0 : write_response_ok);
 
@@ -214,24 +217,18 @@ always @(posedge s_axi_ctrl_aclk) begin
         write_response <= 2'b00;
         write_response_ok <= 0;
         write_processing_start <= 0;
-        // Simulate
-        write_processing_done <= 0;
     end else begin
         if (write_transaction_ok) begin
             write_response <= 2'b00;
             write_response_ok <= 0;
         end else if (write_address_ok && write_data_ok) begin
             if (write_processing_done) begin
-                write_response <= RESP_OKAY;
+                write_response <= write_processing_ok_int ? RESP_OKAY : RESP_SLVERR;
                 write_response_ok <= 1;
                 write_processing_start <= 0;
-                // Simulate
-                write_processing_done <= 0;
-            end else if (!write_processing_start) begin
+            end else if (!write_processing_start && !write_response_ok) begin
                 // TODO process data and respond accordingly
                 write_processing_start <= 1;
-                // Simulate processing
-                write_processing_done <= 1;
             end else begin
                 write_processing_start <= 0;
             end

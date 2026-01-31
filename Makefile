@@ -3,9 +3,9 @@ vivado_folder := ~/Software/AMD/2025.2/Vivado/bin
 
 all: clean $(project_name).xpr
 
-$(project_name).xpr: script.tcl
+$(project_name).xpr: project.tcl
 	@echo Building with Vivado...
-	${vivado_folder}/vivado -mode batch -source script.tcl -verbose
+	${vivado_folder}/vivado -mode batch -source project.tcl -verbose
 
 bitstream: $(project_name).runs/implementation1/design_1_wrapper.bit;
 
