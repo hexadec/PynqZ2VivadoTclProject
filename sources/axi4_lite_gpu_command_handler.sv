@@ -33,12 +33,22 @@ reg read_resp_ok_reg;
 reg write_processing_ok_reg;
 reg write_processing_done_reg;
 
-assign read_processing_done = read_processing_done_reg;
-assign read_data = read_data_reg;
-assign read_resp_ok = read_resp_ok_reg;
+reg fbuf_en_wr_reg;
+reg fbuf_wrea_reg;
+reg [FBUF_ADDR_WIDTH - 1 : 0] fbuf_addr_reg;
+reg [FBUF_DATA_WIDTH - 1 : 0] fbuf_data_reg;
 
-assign write_processing_ok = write_processing_ok_reg;
-assign write_processing_done = write_processing_done_reg;
+assign read_processing_done = !rst_n ? 0 : read_processing_done_reg;
+assign read_data = !rst_n ? 0 : read_data_reg;
+assign read_resp_ok = !rst_n ? 0 : read_resp_ok_reg;
+
+assign write_processing_ok = !rst_n ? 0 : write_processing_ok_reg;
+assign write_processing_done = !rst_n ? 0 : write_processing_done_reg;
+
+assign fbuf_en_wr = !rst_n ? 0 : fbuf_en_wr_reg;
+assign fbuf_wrea = !rst_n ? 0 : fbuf_wrea_reg;
+assign fbuf_addr = !rst_n ? 0 : fbuf_addr_reg;
+assign fbuf_data = !rst_n ? 0 : fbuf_data_reg;
 
 always @(posedge clk) begin
     if (!rst_n) begin
@@ -70,13 +80,25 @@ always @(posedge clk) begin
     if (!rst_n) begin
         write_processing_ok_reg <= 0;
         write_processing_done_reg <= 0;
+        fbuf_en_wr_reg <= 0;
+        fbuf_wrea_reg <= 0;
+        fbuf_addr_reg <= 0;
+        fbuf_data_reg <= 0;
     end else begin
         if (write_processing_start) begin
             write_processing_ok_reg <= 1;
             write_processing_done_reg <= 1;
+            fbuf_en_wr_reg <= 1;
+            fbuf_wrea_reg <= 1;
+            fbuf_addr_reg <= write_address[FBUF_ADDR_WIDTH - 1 : 0];
+            fbuf_data_reg <= write_data[FBUF_DATA_WIDTH - 1 : 0];
         end else begin
             write_processing_ok_reg <= 0;
             write_processing_done_reg <= 0;
+            fbuf_en_wr_reg <= 0;
+            fbuf_wrea_reg <= 0;
+            fbuf_addr_reg <= 0;
+            fbuf_data_reg <= 0;
         end
     end
 end

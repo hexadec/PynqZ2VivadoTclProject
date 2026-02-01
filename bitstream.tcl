@@ -12,7 +12,8 @@ foreach prop $props {
     puts "$prop: $value"
 }
 
-set_msg_config -id [41-2383] -new_severity ERROR
+set_msg_config -id [41-2383] -new_severity ERROR; # Width mismatch when connecting input pin
+set_msg_config -id [41-758] -new_severity ERROR; # The following clock pins are not connected to a valid clock source
 
 reset_run implementation1
 launch_runs implementation1 -to_step write_bitstream -jobs 4

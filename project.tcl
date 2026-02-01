@@ -46,8 +46,10 @@ set_property constrset constraints [get_runs impl_1]
 
 
 add_files -fileset sources_1 "${project_folder}/sources/block.v"
+add_files -fileset sources_1 "${project_folder}/sources/btn_debounce.v"
 add_files -fileset sources_1 "${project_folder}/sources/fbuf2rgb.v"
 add_files -fileset sources_1 "${project_folder}/sources/framebuffer.v"
+add_files -fileset sources_1 "${project_folder}/sources/framebuffer_mux.v"
 add_files -fileset sources_1 "${project_folder}/sources/color_converter.v"
 add_files -fileset sources_1 "${project_folder}/sources/test_pattern_generator.v"
 add_files -fileset sources_1 "${project_folder}/sources/axi4_lite_gpu.v"
@@ -77,18 +79,22 @@ apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 -config { \
 } [get_bd_cells processing_system7_0]
 
 create_bd_cell -type ip -vlnv xilinx.com:ip:clk_wiz:6.0 clk_wiz_0
+create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_0
 create_bd_cell -type ip -vlnv digilentinc.com:ip:rgb2dvi:1.4 rgb2dvi_0
 create_bd_cell -type module -reference block block_0
+create_bd_cell -type module -reference btn_debounce mux_sel_debounce_0
 create_bd_cell -type module -reference framebuffer framebuffer_0
+create_bd_cell -type module -reference framebuffer_mux framebuffer_mux_0
 create_bd_cell -type module -reference fbuf2rgb fbuf2rgb_0
 create_bd_cell -type module -reference color_converter color_converter_0
 create_bd_cell -type module -reference test_pattern_generator test_pattern_generat_0
+create_bd_cell -type module -reference axi4_lite_gpu axi4_lite_gpu_0
 
 set_property -dict [list \
   CONFIG.PCW_APU_PERIPHERAL_FREQMHZ {100} \
   CONFIG.PCW_UIPARAM_DDR_FREQ_MHZ {400} \
   CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {100} \
-  CONFIG.PCW_USE_M_AXI_GP0 {0} \
+  CONFIG.PCW_USE_M_AXI_GP0 {1} \
   CONFIG.PCW_ENET0_PERIPHERAL_ENABLE {0} \
   CONFIG.PCW_QSPI_GRP_SINGLE_SS_ENABLE {0} \
   CONFIG.PCW_SD0_PERIPHERAL_ENABLE {0} \
@@ -158,11 +164,23 @@ set_property -dict [list \
 ] [get_bd_cells framebuffer_0]
 
 set_property -dict [list \
+  CONFIG.FBUF_ADDR_WIDTH ${param_fbuf_addr_width} \
+  CONFIG.FBUF_DATA_WIDTH ${param_fbuf_data_width} \
+] [get_bd_cells framebuffer_mux_0]
+
+set_property -dict [list \
   CONFIG.FRAME_HEIGHT ${param_frame_height} \
   CONFIG.FRAME_WIDTH ${param_frame_width} \
   CONFIG.SCALING_FACTOR ${param_fbuf2rgb_scaling_factor} \
   CONFIG.FBUF_ADDR_WIDTH ${param_fbuf_addr_width} \
 ] [get_bd_cells test_pattern_generat_0]
+
+set_property -dict [list \
+  CONFIG.FBUF_ADDR_WIDTH ${param_fbuf_addr_width} \
+  CONFIG.FBUF_DATA_WIDTH ${param_fbuf_data_width} \
+  CONFIG.AXI_ADDRESS_WIDTH {32} \
+  CONFIG.AXI_DATA_WIDTH {32} \
+] [get_bd_cells axi4_lite_gpu_0]
 
 set_property -dict [list \
   CONFIG.FRAME_HEIGHT ${param_frame_height} \
@@ -177,15 +195,24 @@ set_property CONFIG.kRstActiveHigh {false} [get_bd_cells rgb2dvi_0]
 
 endgroup
 
+connect_bd_net [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins proc_sys_reset_0/ext_reset_in]
+connect_bd_net [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins proc_sys_reset_0/slowest_sync_clk]
 connect_bd_net [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins clk_wiz_0/clk_in1]
+connect_bd_net [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK]
 connect_bd_net [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins test_pattern_generat_0/clk]
 connect_bd_net [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins framebuffer_0/clk_wr]
-connect_bd_net [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins clk_wiz_0/resetn]
-connect_bd_net [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins test_pattern_generat_0/rst_n]
+connect_bd_net [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins axi4_lite_gpu_0/s_axi_ctrl_aclk]
+connect_bd_net [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins mux_sel_debounce_0/clk]
+connect_bd_net [get_bd_pins proc_sys_reset_0/peripheral_aresetn] [get_bd_pins clk_wiz_0/resetn]
+connect_bd_net [get_bd_pins proc_sys_reset_0/peripheral_aresetn] [get_bd_pins test_pattern_generat_0/rst_n]
+connect_bd_net [get_bd_pins proc_sys_reset_0/peripheral_aresetn] [get_bd_pins axi4_lite_gpu_0/s_axi_ctrl_aresetn]
+connect_bd_net [get_bd_pins proc_sys_reset_0/peripheral_aresetn] [get_bd_pins mux_sel_debounce_0/rst_n]
 create_bd_port -dir O -from 3 -to 0 led
 connect_bd_net [get_bd_ports led] [get_bd_pins block_0/out_led]
 create_bd_port -dir I -from 3 -to 0 btn
 connect_bd_net [get_bd_ports btn] [get_bd_pins block_0/in_btn]
+create_bd_port -dir I sw0
+connect_bd_net [get_bd_ports sw0] [get_bd_pins mux_sel_debounce_0/btn_in]
 apply_board_connection -board_interface "hdmi_out" -ip_intf "rgb2dvi_0/TMDS" -diagram "design_1"
 connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins block_0/clk]
 connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins rgb2dvi_0/PixelClk]
@@ -194,10 +221,19 @@ connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins fbuf2rgb_0/clk]
 connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins color_converter_0/clk]
 connect_bd_net [get_bd_pins clk_wiz_0/locked] [get_bd_pins fbuf2rgb_0/rst_n]
 connect_bd_net [get_bd_pins clk_wiz_0/locked] [get_bd_pins rgb2dvi_0/aRst_n]
-connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_address] [get_bd_pins framebuffer_0/addr_wr]
-connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_wr_en] [get_bd_pins framebuffer_0/wrea]
-connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_wr_en] [get_bd_pins framebuffer_0/en_wr]
-connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_color] [get_bd_pins framebuffer_0/din]
+connect_bd_net [get_bd_pins axi4_lite_gpu_0/fbuf_en_wr] [get_bd_pins framebuffer_mux_0/ch0_fbuf_en_wr]
+connect_bd_net [get_bd_pins axi4_lite_gpu_0/fbuf_wrea] [get_bd_pins framebuffer_mux_0/ch0_fbuf_wrea]
+connect_bd_net [get_bd_pins axi4_lite_gpu_0/fbuf_addr] [get_bd_pins framebuffer_mux_0/ch0_fbuf_addr]
+connect_bd_net [get_bd_pins axi4_lite_gpu_0/fbuf_data] [get_bd_pins framebuffer_mux_0/ch0_fbuf_data]
+connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_wr_en] [get_bd_pins framebuffer_mux_0/ch1_fbuf_en_wr]
+connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_wr_en] [get_bd_pins framebuffer_mux_0/ch1_fbuf_wrea]
+connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_address] [get_bd_pins framebuffer_mux_0/ch1_fbuf_addr]
+connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_color] [get_bd_pins framebuffer_mux_0/ch1_fbuf_data]
+connect_bd_net [get_bd_pins mux_sel_debounce_0/btn_out] [get_bd_pins framebuffer_mux_0/sel]
+connect_bd_net [get_bd_pins framebuffer_mux_0/fbuf_en_wr] [get_bd_pins framebuffer_0/en_wr]
+connect_bd_net [get_bd_pins framebuffer_mux_0/fbuf_wrea] [get_bd_pins framebuffer_0/wrea]
+connect_bd_net [get_bd_pins framebuffer_mux_0/fbuf_addr] [get_bd_pins framebuffer_0/addr_wr]
+connect_bd_net [get_bd_pins framebuffer_mux_0/fbuf_data] [get_bd_pins framebuffer_0/din]
 connect_bd_net [get_bd_pins framebuffer_0/dout] [get_bd_pins color_converter_0/in_color]
 connect_bd_net [get_bd_pins color_converter_0/out_color] [get_bd_pins rgb2dvi_0/vid_pData]
 connect_bd_net [get_bd_pins fbuf2rgb_0/hsync] [get_bd_pins rgb2dvi_0/vid_pHSync]
@@ -205,6 +241,21 @@ connect_bd_net [get_bd_pins fbuf2rgb_0/vsync] [get_bd_pins rgb2dvi_0/vid_pVSync]
 connect_bd_net [get_bd_pins fbuf2rgb_0/vde] [get_bd_pins rgb2dvi_0/vid_pVDE]
 connect_bd_net [get_bd_pins fbuf2rgb_0/pixel_fbuf_address] [get_bd_pins framebuffer_0/addr_rd]
 connect_bd_net [get_bd_pins fbuf2rgb_0/pixel_fbuf_address_valid] [get_bd_pins framebuffer_0/en_rd]
+
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { \
+  Clk_master { /processing_system7_0/FCLK_CLK0} \
+  Clk_slave {/processing_system7_0/FCLK_CLK0} \
+  Clk_xbar {/processing_system7_0/FCLK_CLK0} \
+  Master {/processing_system7_0/M_AXI_GP0} \
+  Slave {/axi4_lite_gpu_0/s_axi_ctrl} \
+  ddr_seg {Auto} \
+  intc_ip {New AXI SmartConnect} \
+  master_apm {0}\
+}  [get_bd_intf_pins axi4_lite_gpu_0/s_axi_ctrl]
+
+set_property offset 0x40000000 [get_bd_addr_segs {processing_system7_0/Data/SEG_axi4_lite_gpu_0_reg0}]
+set_property range 8M [get_bd_addr_segs {processing_system7_0/Data/SEG_axi4_lite_gpu_0_reg0}]
+
 regenerate_bd_layout
 save_bd_design
 make_wrapper -files [get_files "${project_folder}/block_design/design_1/design_1.bd"] -top
