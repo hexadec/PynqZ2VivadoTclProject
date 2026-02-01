@@ -1,8 +1,8 @@
 module axi4_lite_gpu_command_handler #(
     parameter FRAME_WIDTH_SCALED = 640,
     parameter FRAME_HEIGHT_SCALED = 480,
-    parameter AXI_ADDRESS_WIDTH = 32,
-    parameter AXI_DATA_WIDTH = 32,
+    parameter ADDRESS_WIDTH = 8,
+    parameter DATA_WIDTH = 32,
     parameter FBUF_ADDR_WIDTH = 19,
     parameter FBUF_DATA_WIDTH = 8
 ) (
@@ -11,14 +11,14 @@ module axi4_lite_gpu_command_handler #(
     input rst_n,
     // Read data channel
     input read_processing_start,
-    input [AXI_ADDRESS_WIDTH - 1 : 0] read_address,
-    output [AXI_DATA_WIDTH - 1 : 0] read_data,
+    input [ADDRESS_WIDTH - 1 : 0] read_address,
+    output [DATA_WIDTH - 1 : 0] read_data,
     output read_processing_done,
     output read_resp_ok,
     // Write data channel
     input write_processing_start,
-    input [AXI_ADDRESS_WIDTH - 1 : 0] write_address,
-    input [AXI_DATA_WIDTH - 1 : 0] write_data,
+    input [ADDRESS_WIDTH - 1 : 0] write_address,
+    input [DATA_WIDTH - 1 : 0] write_data,
     output write_processing_ok,
     output write_processing_done,
     // Framebuffer BRAM connection (write only)
@@ -29,7 +29,7 @@ module axi4_lite_gpu_command_handler #(
 );
 
 reg read_processing_done_reg;
-reg [AXI_DATA_WIDTH - 1 : 0] read_data_reg;
+reg [DATA_WIDTH - 1 : 0] read_data_reg;
 reg read_resp_ok_reg;
 
 reg write_processing_ok_reg;
