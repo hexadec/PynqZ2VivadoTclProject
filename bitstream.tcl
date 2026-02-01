@@ -25,3 +25,4 @@ if {${run_progress} != "100%"} {
 }
 open_run implementation1
 report_utilization -hierarchical_min_primitive_count 50 -name utilization_1
+write_hw_platform -fixed -include_bit -force -file ${project_folder}/design_1_wrapper.xsa

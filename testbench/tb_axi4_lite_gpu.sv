@@ -112,13 +112,13 @@ initial begin
     #10
     $display("Starting write test...");
     s_axi_ctrl_awvalid = 1;
-    s_axi_ctrl_awaddr = 32'h01;
+    s_axi_ctrl_awaddr = 32'h00;
     #10
     assert(s_axi_ctrl_awready) else $error("AWREADY MUST be HIGH after one clock cycle of AWVALID");
     s_axi_ctrl_awvalid = 0;
     s_axi_ctrl_awaddr = 32'h00;
     s_axi_ctrl_wvalid = 1;
-    s_axi_ctrl_wdata = 32'h01;
+    s_axi_ctrl_wdata = 32'b000000000111100000000111111100011;
     #10
     assert(s_axi_ctrl_wready) else $error("WREADY MUST be HIGH after one clock cycle of WVALID");
     s_axi_ctrl_wvalid = 0;

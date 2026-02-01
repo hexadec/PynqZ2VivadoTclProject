@@ -3,25 +3,25 @@ set output_resolution "800x600"
 if {$output_resolution == "640x480"} {
   set param_fbuf_addr_width 19;
   set param_fbuf_data_width 8;
-  set param_fbuf2rgb_scaling_factor 1;
+  set param_frame_scaling_factor 1;
   set param_frame_width 640;
   set param_frame_height 480;
 } elseif {$output_resolution == "800x600"} {
   set param_fbuf_addr_width 17;
   set param_fbuf_data_width 8;
-  set param_fbuf2rgb_scaling_factor 2;
+  set param_frame_scaling_factor 2;
   set param_frame_width 800;
   set param_frame_height 600;
 } elseif {$output_resolution == "1280x720"} {
   set param_fbuf_addr_width 18;
   set param_fbuf_data_width 8;
-  set param_fbuf2rgb_scaling_factor 2;
+  set param_frame_scaling_factor 2;
   set param_frame_width 1280;
   set param_frame_height 720;
 } elseif {$output_resolution == "1920x1080"} {
   set param_fbuf_addr_width 17;
   set param_fbuf_data_width 8;
-  set param_fbuf2rgb_scaling_factor 4;
+  set param_frame_scaling_factor 4;
   set param_frame_width 1920;
   set param_frame_height 1080;
 } else {
@@ -160,7 +160,7 @@ set_property -dict [list \
   CONFIG.DATA_WIDTH ${param_fbuf_data_width} \
   CONFIG.FRAME_HEIGHT ${param_frame_height} \
   CONFIG.FRAME_WIDTH ${param_frame_width} \
-  CONFIG.SCALING_FACTOR ${param_fbuf2rgb_scaling_factor} \
+  CONFIG.SCALING_FACTOR ${param_frame_scaling_factor} \
 ] [get_bd_cells framebuffer_0]
 
 set_property -dict [list \
@@ -171,11 +171,13 @@ set_property -dict [list \
 set_property -dict [list \
   CONFIG.FRAME_HEIGHT ${param_frame_height} \
   CONFIG.FRAME_WIDTH ${param_frame_width} \
-  CONFIG.SCALING_FACTOR ${param_fbuf2rgb_scaling_factor} \
+  CONFIG.SCALING_FACTOR ${param_frame_scaling_factor} \
   CONFIG.FBUF_ADDR_WIDTH ${param_fbuf_addr_width} \
 ] [get_bd_cells test_pattern_generat_0]
 
 set_property -dict [list \
+  CONFIG.FRAME_HEIGHT_SCALED [expr ${param_frame_height}/${param_frame_scaling_factor}] \
+  CONFIG.FRAME_WIDTH_SCALED [expr ${param_frame_width}/${param_frame_scaling_factor}] \
   CONFIG.FBUF_ADDR_WIDTH ${param_fbuf_addr_width} \
   CONFIG.FBUF_DATA_WIDTH ${param_fbuf_data_width} \
   CONFIG.AXI_ADDRESS_WIDTH {32} \
@@ -185,7 +187,7 @@ set_property -dict [list \
 set_property -dict [list \
   CONFIG.FRAME_HEIGHT ${param_frame_height} \
   CONFIG.CONTROL_DELAY {2} \
-  CONFIG.SCALING_FACTOR ${param_fbuf2rgb_scaling_factor} \
+  CONFIG.SCALING_FACTOR ${param_frame_scaling_factor} \
   CONFIG.FBUF_ADDR_WIDTH ${param_fbuf_addr_width} \
 ] [get_bd_cells fbuf2rgb_0]
 

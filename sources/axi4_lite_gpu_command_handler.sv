@@ -1,4 +1,6 @@
 module axi4_lite_gpu_command_handler #(
+    parameter FRAME_WIDTH_SCALED = 640,
+    parameter FRAME_HEIGHT_SCALED = 480,
     parameter AXI_ADDRESS_WIDTH = 32,
     parameter AXI_DATA_WIDTH = 32,
     parameter FBUF_ADDR_WIDTH = 19,
@@ -88,10 +90,17 @@ always @(posedge clk) begin
         if (write_processing_start) begin
             write_processing_ok_reg <= 1;
             write_processing_done_reg <= 1;
-            fbuf_en_wr_reg <= 1;
-            fbuf_wrea_reg <= 1;
-            fbuf_addr_reg <= write_address[FBUF_ADDR_WIDTH - 1 : 0];
-            fbuf_data_reg <= write_data[FBUF_DATA_WIDTH - 1 : 0];
+            if (write_address == 0) begin
+                fbuf_en_wr_reg <= 1;
+                fbuf_wrea_reg <= 1;
+                fbuf_data_reg <= write_data[FBUF_DATA_WIDTH - 1 : 0];
+                fbuf_addr_reg <= write_data[31:20] + write_data[19:8] * FRAME_WIDTH_SCALED;
+            end else begin
+                fbuf_en_wr_reg <= 0;
+                fbuf_wrea_reg <= 0;
+                fbuf_addr_reg <= 0;
+                fbuf_data_reg <= 0;
+            end
         end else begin
             write_processing_ok_reg <= 0;
             write_processing_done_reg <= 0;

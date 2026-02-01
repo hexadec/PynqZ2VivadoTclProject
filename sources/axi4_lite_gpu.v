@@ -1,4 +1,6 @@
 module axi4_lite_gpu #(
+    parameter FRAME_WIDTH_SCALED = 640,
+    parameter FRAME_HEIGHT_SCALED = 480,
     parameter AXI_ADDRESS_WIDTH = 32,
     parameter AXI_DATA_WIDTH = 32,
     parameter FBUF_ADDR_WIDTH = 19,
@@ -70,6 +72,10 @@ reg write_data_ok;
 reg s_axi_ctrl_wready_int;
 
 axi4_lite_gpu_command_handler #(
+    .FRAME_WIDTH_SCALED(FRAME_WIDTH_SCALED),
+    .FRAME_HEIGHT_SCALED(FRAME_HEIGHT_SCALED),
+    .AXI_ADDRESS_WIDTH(AXI_ADDRESS_WIDTH),
+    .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
     .FBUF_ADDR_WIDTH(FBUF_ADDR_WIDTH),
     .FBUF_DATA_WIDTH(FBUF_DATA_WIDTH)
 ) axi4_lite_gpu_command_handler_inst(
