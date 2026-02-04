@@ -49,11 +49,12 @@ add_files -fileset sources_1 "${project_folder}/sources/block.v"
 add_files -fileset sources_1 "${project_folder}/sources/btn_debounce.v"
 add_files -fileset sources_1 "${project_folder}/sources/fbuf2rgb.v"
 add_files -fileset sources_1 "${project_folder}/sources/framebuffer.v"
+add_files -fileset sources_1 "${project_folder}/sources/framebuffer_with_reset.v"
 add_files -fileset sources_1 "${project_folder}/sources/framebuffer_mux.v"
 add_files -fileset sources_1 "${project_folder}/sources/color_converter.v"
 add_files -fileset sources_1 "${project_folder}/sources/test_pattern_generator.v"
 add_files -fileset sources_1 "${project_folder}/sources/axi4_lite_gpu.v"
-add_files -fileset sources_1 "${project_folder}/sources/axi4_lite_gpu_command_handler.sv"
+add_files -fileset sources_1 "${project_folder}/sources/axi4_lite_gpu_decode.sv"
 update_compile_order -fileset sources_1
 file mkdir "${project_folder}/block_design"
 create_bd_design -dir "${project_folder}/block_design" design_1
@@ -83,7 +84,7 @@ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_0
 create_bd_cell -type ip -vlnv digilentinc.com:ip:rgb2dvi:1.4 rgb2dvi_0
 create_bd_cell -type module -reference block block_0
 create_bd_cell -type module -reference btn_debounce mux_sel_debounce_0
-create_bd_cell -type module -reference framebuffer framebuffer_0
+create_bd_cell -type module -reference framebuffer_with_reset framebuffer_0
 create_bd_cell -type module -reference framebuffer_mux framebuffer_mux_0
 create_bd_cell -type module -reference fbuf2rgb fbuf2rgb_0
 create_bd_cell -type module -reference color_converter color_converter_0
@@ -227,15 +228,18 @@ connect_bd_net [get_bd_pins axi4_lite_gpu_0/fbuf_en_wr] [get_bd_pins framebuffer
 connect_bd_net [get_bd_pins axi4_lite_gpu_0/fbuf_wrea] [get_bd_pins framebuffer_mux_0/ch0_fbuf_wrea]
 connect_bd_net [get_bd_pins axi4_lite_gpu_0/fbuf_addr] [get_bd_pins framebuffer_mux_0/ch0_fbuf_addr]
 connect_bd_net [get_bd_pins axi4_lite_gpu_0/fbuf_data] [get_bd_pins framebuffer_mux_0/ch0_fbuf_data]
+connect_bd_net [get_bd_pins axi4_lite_gpu_0/fbuf_rst_req_n] [get_bd_pins framebuffer_mux_0/ch0_fbuf_rst_req_n]
 connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_wr_en] [get_bd_pins framebuffer_mux_0/ch1_fbuf_en_wr]
 connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_wr_en] [get_bd_pins framebuffer_mux_0/ch1_fbuf_wrea]
 connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_address] [get_bd_pins framebuffer_mux_0/ch1_fbuf_addr]
 connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_color] [get_bd_pins framebuffer_mux_0/ch1_fbuf_data]
+connect_bd_net [get_bd_pins test_pattern_generat_0/pixel_fbuf_rst_req_n] [get_bd_pins framebuffer_mux_0/ch1_fbuf_rst_req_n]
 connect_bd_net [get_bd_pins mux_sel_debounce_0/btn_out] [get_bd_pins framebuffer_mux_0/sel]
 connect_bd_net [get_bd_pins framebuffer_mux_0/fbuf_en_wr] [get_bd_pins framebuffer_0/en_wr]
 connect_bd_net [get_bd_pins framebuffer_mux_0/fbuf_wrea] [get_bd_pins framebuffer_0/wrea]
 connect_bd_net [get_bd_pins framebuffer_mux_0/fbuf_addr] [get_bd_pins framebuffer_0/addr_wr]
 connect_bd_net [get_bd_pins framebuffer_mux_0/fbuf_data] [get_bd_pins framebuffer_0/din]
+connect_bd_net [get_bd_pins framebuffer_mux_0/fbuf_rst_req_n] [get_bd_pins framebuffer_0/rst_req_n]
 connect_bd_net [get_bd_pins framebuffer_0/dout] [get_bd_pins color_converter_0/in_color]
 connect_bd_net [get_bd_pins color_converter_0/out_color] [get_bd_pins rgb2dvi_0/vid_pData]
 connect_bd_net [get_bd_pins fbuf2rgb_0/hsync] [get_bd_pins rgb2dvi_0/vid_pHSync]

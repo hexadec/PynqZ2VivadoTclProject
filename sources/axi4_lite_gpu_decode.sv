@@ -1,4 +1,4 @@
-module axi4_lite_gpu_command_handler #(
+module axi4_lite_gpu_decode #(
     parameter FRAME_WIDTH_SCALED = 640,
     parameter FRAME_HEIGHT_SCALED = 480,
     parameter ADDRESS_WIDTH = 8,
@@ -25,7 +25,8 @@ module axi4_lite_gpu_command_handler #(
     output fbuf_en_wr,
     output fbuf_wrea,
     output [FBUF_ADDR_WIDTH - 1 : 0] fbuf_addr,
-    output [FBUF_DATA_WIDTH - 1 : 0] fbuf_data
+    output [FBUF_DATA_WIDTH - 1 : 0] fbuf_data,
+    output fbuf_rst_req_n
 );
 
 reg read_processing_done_reg;
@@ -39,6 +40,7 @@ reg fbuf_en_wr_reg;
 reg fbuf_wrea_reg;
 reg [FBUF_ADDR_WIDTH - 1 : 0] fbuf_addr_reg;
 reg [FBUF_DATA_WIDTH - 1 : 0] fbuf_data_reg;
+reg fbuf_rst_req_n_reg;
 
 assign read_processing_done = !rst_n ? 0 : read_processing_done_reg;
 assign read_data = !rst_n ? 0 : read_data_reg;
@@ -51,6 +53,8 @@ assign fbuf_en_wr = !rst_n ? 0 : fbuf_en_wr_reg;
 assign fbuf_wrea = !rst_n ? 0 : fbuf_wrea_reg;
 assign fbuf_addr = !rst_n ? 0 : fbuf_addr_reg;
 assign fbuf_data = !rst_n ? 0 : fbuf_data_reg;
+
+assign fbuf_rst_req_n = !rst_n ? 0 : fbuf_rst_req_n_reg; // Reset framebuffer on system reset
 
 always @(posedge clk) begin
     if (!rst_n) begin
@@ -80,6 +84,8 @@ end
 
 always @(posedge clk) begin
     if (!rst_n) begin
+        // Default state, should set everything to 0, except framebuffer reset request
+        fbuf_rst_req_n_reg <= 1;
         write_processing_ok_reg <= 0;
         write_processing_done_reg <= 0;
         fbuf_en_wr_reg <= 0;
@@ -91,17 +97,30 @@ always @(posedge clk) begin
             write_processing_ok_reg <= 1;
             write_processing_done_reg <= 1;
             if (write_address == 0) begin
+                // Do a single pixel write (max 4096x4096@8bit)
+                fbuf_rst_req_n_reg <= 1;
                 fbuf_en_wr_reg <= 1;
                 fbuf_wrea_reg <= 1;
                 fbuf_data_reg <= write_data[FBUF_DATA_WIDTH - 1 : 0];
                 fbuf_addr_reg <= write_data[31:20] + write_data[19:8] * FRAME_WIDTH_SCALED;
+            end else if (write_address == 1) begin
+                // Reset request, set other regs to 0
+                fbuf_rst_req_n_reg <= write_data == 0; // Only reset if data is non-zero
+                fbuf_en_wr_reg <= 0;
+                fbuf_wrea_reg <= 0;
+                fbuf_addr_reg <= 0;
+                fbuf_data_reg <= 0;
             end else begin
+                // Default state, should set everything to 0, except reset request
+                fbuf_rst_req_n_reg <= 1;
                 fbuf_en_wr_reg <= 0;
                 fbuf_wrea_reg <= 0;
                 fbuf_addr_reg <= 0;
                 fbuf_data_reg <= 0;
             end
         end else begin
+            // Default state, should set everything to 0, except reset request
+            fbuf_rst_req_n_reg <= 1;
             write_processing_ok_reg <= 0;
             write_processing_done_reg <= 0;
             fbuf_en_wr_reg <= 0;

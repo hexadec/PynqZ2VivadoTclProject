@@ -35,7 +35,8 @@ module axi4_lite_gpu #(
     output fbuf_en_wr,
     output fbuf_wrea,
     output [FBUF_ADDR_WIDTH - 1 : 0] fbuf_addr,
-    output [FBUF_DATA_WIDTH - 1 : 0] fbuf_data
+    output [FBUF_DATA_WIDTH - 1 : 0] fbuf_data,
+    output fbuf_rst_req_n
 );
 
 
@@ -71,14 +72,14 @@ reg [AXI_DATA_WIDTH - 1 : 0] write_data;
 reg write_data_ok;
 reg s_axi_ctrl_wready_int;
 
-axi4_lite_gpu_command_handler #(
+axi4_lite_gpu_decode #(
     .FRAME_WIDTH_SCALED(FRAME_WIDTH_SCALED),
     .FRAME_HEIGHT_SCALED(FRAME_HEIGHT_SCALED),
     .ADDRESS_WIDTH(8),
     .DATA_WIDTH(AXI_DATA_WIDTH),
     .FBUF_ADDR_WIDTH(FBUF_ADDR_WIDTH),
     .FBUF_DATA_WIDTH(FBUF_DATA_WIDTH)
-) axi4_lite_gpu_command_handler_inst(
+) axi4_lite_gpu_decode_inst(
     .clk(s_axi_ctrl_aclk),
     .rst_n(s_axi_ctrl_aresetn),
     .read_processing_start(read_processing_start),
@@ -94,7 +95,8 @@ axi4_lite_gpu_command_handler #(
     .fbuf_en_wr(fbuf_en_wr),
     .fbuf_wrea(fbuf_wrea),
     .fbuf_addr(fbuf_addr),
-    .fbuf_data(fbuf_data)
+    .fbuf_data(fbuf_data),
+    .fbuf_rst_req_n(fbuf_rst_req_n)
 );
 
 localparam RESP_OKAY = 2'b00;
