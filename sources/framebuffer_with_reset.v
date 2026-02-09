@@ -46,7 +46,7 @@ assign wrea_int = rst_busy ? 1 : wrea;
 assign addr_wr_int = rst_busy ? reset_counter : addr_wr;
 assign din_int = rst_busy ? 0 : din;
 
-always (@posedge clk) begin
+always @(posedge clk_wr) begin
     if (!rst_req_n) begin
         reset_counter <= 1; // NOT A drawback: if rst_req_n is asserted while reset_counter has not finished, addr 0 is skipped
     end else if (reset_counter < NUMBER_OF_PIXELS - 1) begin

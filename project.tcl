@@ -35,6 +35,7 @@ set project_name [lindex $project_folder_split end]
 puts "Project folder: ${project_folder}"
 puts "Project name: ${project_name}"
 
+set_param board.repoPaths [list "${project_folder}/board_files"]
 
 create_project $project_name $project_folder -part xc7z020clg400-1
 set_property board_part tul.com.tw:pynq-z2:part0:1.0 [current_project]

@@ -1,4 +1,4 @@
-project_name := project_2
+project_name := $(shell basename $(shell pwd))
 vivado_folder := ~/Software/AMD/2025.2/Vivado/bin
 
 all: clean $(project_name).xpr

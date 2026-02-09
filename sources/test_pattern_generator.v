@@ -10,10 +10,10 @@ module test_pattern_generator #(
         output reg [FBUF_ADDR_WIDTH - 1 : 0] pixel_fbuf_address,
         output reg [FBUF_DATA_WIDTH - 1 : 0] pixel_fbuf_color,
         output reg pixel_fbuf_wr_en,
-        output wire pixel_fbuf_rst_req_n,
+        output wire pixel_fbuf_rst_req_n
     );
-
-    assign pixel_fbuf_rst_req_n = 1;
+    
+    assign pixel_fbuf_rst_req_n = rst_n;
 
     generate
         if (FBUF_DATA_WIDTH != 8) begin
