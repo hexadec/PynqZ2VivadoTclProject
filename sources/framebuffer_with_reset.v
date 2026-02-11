@@ -10,7 +10,7 @@ module framebuffer_with_reset #(
     input [ADDR_WIDTH - 1:0] addr_rd, addr_wr,
     input [DATA_WIDTH - 1:0] din, 
     output rst_busy,
-    output reg [DATA_WIDTH - 1:0] dout
+    output [DATA_WIDTH - 1:0] dout
     );
 
     localparam NUMBER_OF_PIXELS = FRAME_WIDTH / SCALING_FACTOR * FRAME_HEIGHT / SCALING_FACTOR;
@@ -49,7 +49,7 @@ assign din_int = rst_busy ? 0 : din;
 always @(posedge clk_wr) begin
     if (!rst_req_n) begin
         reset_counter <= 1; // NOT A drawback: if rst_req_n is asserted while reset_counter has not finished, addr 0 is skipped
-    end else if (reset_counter < NUMBER_OF_PIXELS - 1) begin
+    end else if (reset_counter > 0 && reset_counter < NUMBER_OF_PIXELS - 1) begin
         reset_counter <= reset_counter + 1;
     end else begin
         reset_counter <= 0;

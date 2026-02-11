@@ -96,14 +96,14 @@ always @(posedge clk) begin
         if (write_processing_start) begin
             write_processing_ok_reg <= 1;
             write_processing_done_reg <= 1;
-            if (write_address == 0) begin
+            if (write_address == 32'h0) begin
                 // Do a single pixel write (max 4096x4096@8bit)
                 fbuf_rst_req_n_reg <= 1;
                 fbuf_en_wr_reg <= 1;
                 fbuf_wrea_reg <= 1;
                 fbuf_data_reg <= write_data[FBUF_DATA_WIDTH - 1 : 0];
                 fbuf_addr_reg <= write_data[31:20] + write_data[19:8] * FRAME_WIDTH_SCALED;
-            end else if (write_address == 1) begin
+            end else if (write_address == 32'h4) begin
                 // Reset request, set other regs to 0
                 fbuf_rst_req_n_reg <= write_data == 0; // Only reset if data is non-zero
                 fbuf_en_wr_reg <= 0;
