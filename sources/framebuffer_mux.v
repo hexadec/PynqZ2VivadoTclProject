@@ -29,4 +29,4 @@ assign fbuf_addr = !sel ? ch0_fbuf_addr : ch1_fbuf_addr;
 assign fbuf_data = !sel ? ch0_fbuf_data : ch1_fbuf_data;
 assign fbuf_rst_req_n = !sel ? ch0_fbuf_rst_req_n : ch1_fbuf_rst_req_n;
 
-endmodule;
+endmodule

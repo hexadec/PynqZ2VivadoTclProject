@@ -65,6 +65,7 @@ set_property SOURCE_SET sources_1 [get_filesets sim_1]
 add_files -fileset sim_1 "${project_folder}/testbench/tb_color_converter.sv"
 add_files -fileset sim_1 "${project_folder}/testbench/tb_fbuf2rgb.sv"
 add_files -fileset sim_1 "${project_folder}/testbench/tb_axi4_lite_gpu.sv"
+add_files -fileset sim_1 "${project_folder}/testbench/tb_framebuffer.sv"
 update_compile_order -fileset sim_1
 
 set_property ip_repo_paths "${project_folder}/vivado-library" [current_project]
@@ -265,6 +266,7 @@ set_property range 8M [get_bd_addr_segs {processing_system7_0/Data/SEG_axi4_lite
 
 regenerate_bd_layout
 save_bd_design
+write_bd_layout -force -format svg -verbose "${project_folder}/block_design.svg"
 make_wrapper -files [get_files "${project_folder}/block_design/design_1/design_1.bd"] -top
 add_files -norecurse "${project_folder}/block_design/design_1/hdl/design_1_wrapper.v"
 set_property top design_1_wrapper [current_fileset]
