@@ -243,6 +243,7 @@ connect_bd_net [get_bd_pins framebuffer_mux_0/fbuf_addr] [get_bd_pins framebuffe
 connect_bd_net [get_bd_pins framebuffer_mux_0/fbuf_data] [get_bd_pins framebuffer_0/din]
 connect_bd_net [get_bd_pins framebuffer_mux_0/fbuf_rst_req_n] [get_bd_pins framebuffer_0/rst_req_n]
 connect_bd_net [get_bd_pins framebuffer_0/dout] [get_bd_pins color_converter_0/in_color]
+connect_bd_net [get_bd_pins framebuffer_0/rst_busy] [get_bd_pins axi4_lite_gpu_0/fbuf_rst_busy]
 connect_bd_net [get_bd_pins color_converter_0/out_color] [get_bd_pins rgb2dvi_0/vid_pData]
 connect_bd_net [get_bd_pins fbuf2rgb_0/hsync] [get_bd_pins rgb2dvi_0/vid_pHSync]
 connect_bd_net [get_bd_pins fbuf2rgb_0/vsync] [get_bd_pins rgb2dvi_0/vid_pVSync]
@@ -266,7 +267,7 @@ set_property range 8M [get_bd_addr_segs {processing_system7_0/Data/SEG_axi4_lite
 
 regenerate_bd_layout
 save_bd_design
-write_bd_layout -force -format svg -verbose "${project_folder}/block_design.svg"
+write_bd_layout -force -format svg -verbose "${project_folder}/block_design.svg" ; # Needs GUI mode
 make_wrapper -files [get_files "${project_folder}/block_design/design_1/design_1.bd"] -top
 add_files -norecurse "${project_folder}/block_design/design_1/hdl/design_1_wrapper.v"
 set_property top design_1_wrapper [current_fileset]

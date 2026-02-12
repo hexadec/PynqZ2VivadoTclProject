@@ -32,6 +32,7 @@ module axi4_lite_gpu #(
     input s_axi_ctrl_bready,
 
     // Framebuffer BRAM connection (write only)
+    input fbuf_rst_busy,
     output fbuf_en_wr,
     output fbuf_wrea,
     output [FBUF_ADDR_WIDTH - 1 : 0] fbuf_addr,
@@ -92,6 +93,7 @@ axi4_lite_gpu_decode #(
     .write_data(write_data),
     .write_processing_ok(write_processing_ok_int),
     .write_processing_done(write_processing_done),
+    .fbuf_rst_busy(fbuf_rst_busy),
     .fbuf_en_wr(fbuf_en_wr),
     .fbuf_wrea(fbuf_wrea),
     .fbuf_addr(fbuf_addr),

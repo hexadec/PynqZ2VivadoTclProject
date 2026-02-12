@@ -22,6 +22,7 @@ module axi4_lite_gpu_decode #(
     output write_processing_ok,
     output write_processing_done,
     // Framebuffer BRAM connection (write only)
+    input fbuf_rst_busy,
     output fbuf_en_wr,
     output fbuf_wrea,
     output [FBUF_ADDR_WIDTH - 1 : 0] fbuf_addr,
@@ -65,7 +66,7 @@ always @(posedge clk) begin
         if (read_processing_start) begin
             // Use 0x00 as status register
             if (read_address == 0) begin
-                read_data_reg <= {28'h0, read_processing_start, read_processing_done_reg, write_processing_start, write_processing_done};
+                read_data_reg <= {27'h0, fbuf_rst_busy, read_processing_start, read_processing_done_reg, write_processing_start, write_processing_done};
                 read_processing_done_reg <= 1;
                 read_resp_ok_reg <= 1;
             end else begin
