@@ -11,3 +11,4 @@ block_design
 /.Xil
 /vivado*.log
 /vivado*.jou
+/*.xsa

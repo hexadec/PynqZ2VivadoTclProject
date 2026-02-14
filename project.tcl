@@ -1,4 +1,4 @@
-set output_resolution "800x600"
+set output_resolution "3840x2160"
 
 if {$output_resolution == "640x480"} {
   set param_fbuf_addr_width 19;
@@ -24,6 +24,12 @@ if {$output_resolution == "640x480"} {
   set param_frame_scaling_factor 4;
   set param_frame_width 1920;
   set param_frame_height 1080;
+} elseif {$output_resolution == "3840x2160"} {
+  set param_fbuf_addr_width 17;
+  set param_fbuf_data_width 8;
+  set param_frame_scaling_factor 8;
+  set param_frame_width 3840;
+  set param_frame_height 2160;
 } else {
   error "Invalid output resolution"
 }
@@ -151,6 +157,23 @@ if {$output_resolution == "640x480"} {
     CONFIG.MMCM_DIVCLK_DIVIDE {1} \
     CONFIG.RESET_PORT {resetn} \
     CONFIG.RESET_TYPE {ACTIVE_LOW} \
+    CONFIG.JITTER_SEL {Min_O_Jitter} \
+    CONFIG.MMCM_BANDWIDTH {HIGH} \
+  ] [get_bd_cells clk_wiz_0]
+  set_property -dict [list \
+    CONFIG.kClkPrimitive {MMCM} \
+    CONFIG.kClkRange {1} \
+  ] [get_bd_cells rgb2dvi_0]
+} elseif {$output_resolution == "3840x2160"} {
+  set_property -dict [list \
+    CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {205.564} \
+    CONFIG.MMCM_CLKFBOUT_MULT_F {10.280} \
+    CONFIG.MMCM_CLKOUT1_DIVIDE_F {5.000} \
+    CONFIG.MMCM_DIVCLK_DIVIDE {1} \
+    CONFIG.RESET_PORT {resetn} \
+    CONFIG.RESET_TYPE {ACTIVE_LOW} \
+    CONFIG.JITTER_SEL {Min_O_Jitter} \
+    CONFIG.MMCM_BANDWIDTH {HIGH} \
   ] [get_bd_cells clk_wiz_0]
   set_property -dict [list \
     CONFIG.kClkPrimitive {MMCM} \

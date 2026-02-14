@@ -69,6 +69,11 @@ always @(posedge clk) begin
                 read_data_reg <= {27'h0, fbuf_rst_busy, read_processing_start, read_processing_done_reg, write_processing_start, write_processing_done};
                 read_processing_done_reg <= 1;
                 read_resp_ok_reg <= 1;
+            end else if (read_address == 1) begin
+                read_data_reg[15:0] <= FRAME_WIDTH_SCALED;
+                read_data_reg[31:16] <= FRAME_HEIGHT_SCALED;
+                read_processing_done_reg <= 1;
+                read_resp_ok_reg <= 1;
             end else begin
                 // TODO
                 read_data_reg <= 32'hffffffff;
