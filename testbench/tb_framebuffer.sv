@@ -65,7 +65,25 @@ initial begin
     rst_req_n = 0;
     #10
     rst_req_n = 1;
-    #1000
+    // Start counter from 2: first address is reset immediately, and +1 tick has passed
+    for (int counter = 2; counter < FRAME_WIDTH * FRAME_HEIGHT; counter++) begin
+        #10
+        assert(rst_busy == 1) else $error("RST_BUSY should be HIGH");
+    end
+    #10
+    assert(rst_busy == 0) else $error("RST_BUSY should be LOW");
+    #10
+    en_wr = 0;
+    addr_wr = 0;
+    din = 0;
+    for (int rd_idx = 0; rd_idx < FRAME_WIDTH * FRAME_HEIGHT; rd_idx++) begin
+        en_rd = 1;
+        addr_rd = rd_idx;
+        #10
+        assert(dout == 0) else $error("Value: %h    Expected: %h", dout, 0);
+    end
+    en_rd = 0;
+    addr_rd = 0;
     $finish;
 end
 
