@@ -43,6 +43,8 @@ module fbuf2rgb
         input integer value;
         if (value == 2160) begin
             frame_h = 3840;
+        end else if (value == 1440) begin
+            frame_h = 2560;
         end else if (value == 1080) begin
             frame_h = 1920;
         end else if (value == 720) begin
@@ -61,6 +63,8 @@ module fbuf2rgb
     function [12:0] frame_h_front_porch;
         input integer value;
         if (value == 2160) begin
+            frame_h_front_porch = 8;
+        end else if (value == 1440) begin
             frame_h_front_porch = 8;
         end else if (value == 1080) begin
             frame_h_front_porch = 88;
@@ -81,6 +85,8 @@ module fbuf2rgb
         input integer value;
         if (value == 2160) begin
             frame_h_sync = 32;
+        end else if (value == 1440) begin
+            frame_h_sync = 32;
         end else if (value == 1080) begin
             frame_h_sync = 44;
         end else if (value == 720) begin
@@ -99,6 +105,8 @@ module fbuf2rgb
     function [12:0] frame_h_back_porch;
         input integer value;
         if (value == 2160) begin
+            frame_h_back_porch = 40;
+        end else if (value == 1440) begin
             frame_h_back_porch = 40;
         end else if (value == 1080) begin
             frame_h_back_porch = 148;
@@ -120,6 +128,8 @@ module fbuf2rgb
         input integer value;
         if (value == 2160) begin
             frame_v = 2160;
+        end else if (value == 1440) begin
+            frame_v = 1440;
         end else if (value == 1080) begin
             frame_v = 1080;
         end else if (value == 720) begin
@@ -139,6 +149,8 @@ module fbuf2rgb
         input integer value;
         if (value == 2160) begin
             frame_v_front_porch = 11;
+        end else if (value == 1440) begin
+            frame_v_front_porch = 7;
         end else if (value == 1080) begin
             frame_v_front_porch = 4;
         end else if (value == 720) begin
@@ -158,6 +170,8 @@ module fbuf2rgb
         input integer value;
         if (value == 2160) begin
             frame_v_sync = 8;
+        end else if (value == 1440) begin
+            frame_v_sync = 8;
         end else if (value == 1080) begin
             frame_v_sync = 5;
         end else if (value == 720) begin
@@ -176,6 +190,8 @@ module fbuf2rgb
     function [12:0] frame_v_back_porch;
         input integer value;
         if (value == 2160) begin
+            frame_v_back_porch = 6;
+        end else if (value == 1440) begin
             frame_v_back_porch = 6;
         end else if (value == 1080) begin
             frame_v_back_porch = 36;
@@ -197,6 +213,8 @@ module fbuf2rgb
         input integer value;
         if (value == 2160) begin
             h_sync_active_low = 0;
+        end else if (value == 1440) begin
+            h_sync_active_low = 0;
         end else if (value == 1080) begin
             h_sync_active_low = 0;
         end else if (value == 720) begin
@@ -215,6 +233,8 @@ module fbuf2rgb
     function reg v_sync_active_low;
         input integer value;
         if (value == 2160) begin
+            v_sync_active_low = 1;
+        end else if (value == 1440) begin
             v_sync_active_low = 1;
         end else if (value == 1080) begin
             v_sync_active_low = 0;
