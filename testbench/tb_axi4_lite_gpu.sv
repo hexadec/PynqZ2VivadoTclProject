@@ -4,6 +4,8 @@ localparam AXI_ADDRESS_WIDTH = 32;
 localparam AXI_DATA_WIDTH = 32;
 localparam FBUF_ADDR_WIDTH = 19;
 localparam FBUF_DATA_WIDTH = 8;
+localparam FRAME_WIDTH_SCALED = 640;
+localparam FRAME_HEIGHT_SCALED = 480;
 
 logic clk = 0;
 logic rst_n = 0;
@@ -31,6 +33,7 @@ logic s_axi_ctrl_bvalid;
 logic s_axi_ctrl_bready;
 
 // Framebuffer BRAM connection (write only)
+logic fbuf_rst_busy;
 logic fbuf_en_wr;
 logic fbuf_wrea;
 logic [FBUF_ADDR_WIDTH - 1 : 0] fbuf_addr;
@@ -38,6 +41,8 @@ logic [FBUF_DATA_WIDTH - 1 : 0] fbuf_data;
 logic fbuf_rst_req_n;
 
 axi4_lite_gpu #(
+    .FRAME_WIDTH_SCALED(FRAME_WIDTH_SCALED),
+    .FRAME_HEIGHT_SCALED(FRAME_HEIGHT_SCALED),
     .AXI_ADDRESS_WIDTH(AXI_ADDRESS_WIDTH),
     .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
     .FBUF_ADDR_WIDTH(FBUF_ADDR_WIDTH),
@@ -67,6 +72,7 @@ axi4_lite_gpu #(
     .s_axi_ctrl_bvalid(s_axi_ctrl_bvalid),
     .s_axi_ctrl_bready(s_axi_ctrl_bready),
     // Framebuffer connections
+    .fbuf_rst_busy(fbuf_rst_busy),
     .fbuf_en_wr(fbuf_en_wr),
     .fbuf_wrea(fbuf_wrea),
     .fbuf_addr(fbuf_addr),
@@ -92,16 +98,17 @@ assert property (@(posedge clk) !rst_n |-> !s_axi_ctrl_rvalid && !s_axi_ctrl_bva
 // end
 assert property (@(posedge clk) !rst_n |-> !s_axi_ctrl_arready && !s_axi_ctrl_awready && !s_axi_ctrl_wready) else $error("All xVALID signals SHOULD be LOW during reset");
 
-int test_read_addresses[2] = '{0, 1};
-int test_read_data[2] = '{8, 32'hffffffff};
-logic [1:0] test_read_responses[2] = '{2'b00, 2'b10};
+int test_read_addresses[3] = '{0, 4, 8};
+int test_read_data[3] = '{32'h18, {16'(FRAME_HEIGHT_SCALED), 16'(FRAME_WIDTH_SCALED)}, 32'hffffffff};
+logic [1:0] test_read_responses[3] = '{2'b00, 2'b00, 2'b10};
 
 initial begin
     rst_n = 0;
+    fbuf_rst_busy = 1;
     #100
     rst_n = 1;
     #10
-    for (int i = 0; i < 2; i++) begin
+    for (int i = 0; i < 3; i++) begin
         #10
         $display("Starting read test #%d", i);
         s_axi_ctrl_araddr = test_read_addresses[i];
@@ -113,13 +120,14 @@ initial begin
         #20 // TODO: Modify according to expected behaviour
         assert(s_axi_ctrl_rvalid) else $error("RVALID MUST be HIGH");
         assert(s_axi_ctrl_rresp == test_read_responses[i]) else $error("RRESP MUST be 2'b%b", test_read_responses[i]);
-        assert(s_axi_ctrl_rdata == test_read_data[i]) else $error("RRESP MUST be 32'h%h", test_read_addresses[i]);
+        assert(s_axi_ctrl_rdata == test_read_data[i]) else $error("RDATA MUST be 32'h%h", test_read_data[i]);
         s_axi_ctrl_rready = 1;
         #10
         assert(!s_axi_ctrl_rvalid) else $error("RVALID MUST be LOW");
         s_axi_ctrl_rready = 0;
     end
     #10
+    fbuf_rst_busy = 0;
     $display("Starting write test...");
     s_axi_ctrl_awvalid = 1;
     s_axi_ctrl_awaddr = 32'h00;
