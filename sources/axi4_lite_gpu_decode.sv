@@ -23,11 +23,11 @@ module axi4_lite_gpu_decode #(
     output write_processing_done,
     // Framebuffer BRAM connection (write only)
     input fbuf_rst_busy,
-    output fbuf_en_wr,
-    output fbuf_wrea,
-    output [FBUF_ADDR_WIDTH - 1 : 0] fbuf_addr,
-    output [FBUF_DATA_WIDTH - 1 : 0] fbuf_data,
-    output fbuf_rst_req_n
+    output reg fbuf_en_wr,
+    output reg fbuf_wrea,
+    output reg [FBUF_ADDR_WIDTH - 1 : 0] fbuf_addr,
+    output reg [FBUF_DATA_WIDTH - 1 : 0] fbuf_data,
+    output reg fbuf_rst_req_n
 );
 
 reg read_processing_done_reg;
@@ -49,7 +49,7 @@ wire rect_err;
 wire rect_left_valid, rect_right_valid;
 wire [11:0] rect_left_x, rect_left_y, rect_right_x, rect_right_y;
 wire rect_color_valid;
-wire [7:0] rect_color_valid;
+wire [7:0] rect_color;
 
 wire rect_fbuf_en_wr;
 wire rect_fbuf_wrea;
@@ -91,7 +91,7 @@ enum reg [3:0] {IDLE = 0, BUSY_SINGLE, BUSY_RESET, BUSY_RECT, LOAD_RECT_COORDS_L
 assign write_processing_ok = !rst_n ? 0 : (execute_unit_state == IDLE && write_processing_start) ? 1 : 0;
 assign write_processing_done = !rst_n ? 0 : (execute_unit_state == IDLE && write_processing_start) ? 1 : 0;
 
-always @(posedge clk) begin
+always_ff @(posedge clk) begin
     if (!rst_n) begin
         execute_unit_state <= IDLE;
     end else begin
@@ -182,7 +182,7 @@ always_comb begin
 end
 
 
-always @(posedge clk) begin
+always_ff @(posedge clk) begin
     if (!rst_n) begin
         read_processing_done_reg <= 0;
         read_data_reg <= 0;
@@ -216,7 +216,7 @@ always @(posedge clk) begin
     end
 end
 
-always @(posedge clk) begin
+always_ff @(posedge clk) begin
     if (!rst_n) begin
         write_addr_reg <= 0;
         write_data_reg <= 0;

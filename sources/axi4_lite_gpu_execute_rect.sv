@@ -49,7 +49,7 @@ assign done = state == DONE;
 assign err = state == ERR;
 
 
-always @(posedge clk) begin
+always_ff @(posedge clk) begin
     if (!rst_n) begin
         state <= IDLE;
     end else begin
@@ -88,7 +88,7 @@ always_comb begin
 end
 
 
-always @(posedge clk) begin
+always_ff @(posedge clk) begin
     if (!rst_n) begin
         left_valid_int <= 0;
         right_valid_int <= 0;
@@ -128,7 +128,7 @@ always @(posedge clk) begin
 end
 
 
-always @(posedge clk) begin
+always_ff @(posedge clk) begin
     if (!rst_n) begin
         min_x <= 0;
         min_y <= 0;
@@ -170,7 +170,7 @@ end
 
 assign fbuf_en_wr = state == BUSY;
 assign fbuf_wrea = state == BUSY;
-assign fbuf_addr = pos_y * FBUF_ADDR_WIDTH'(FRAME_WIDTH_SCALED) + pos_x;
-assign fbuf_data = color_int;
+assign fbuf_addr = state == BUSY ? pos_y * FBUF_ADDR_WIDTH'(FRAME_WIDTH_SCALED) + pos_x : 0;
+assign fbuf_data = state == BUSY ? color_int : 0;
 
 endmodule

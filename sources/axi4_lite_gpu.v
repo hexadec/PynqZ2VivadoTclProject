@@ -64,7 +64,7 @@ reg write_processing_start;
 wire write_processing_done;
 
 // Store data and address from W/B channels and manage responses
-reg write_transaction_ok;
+wire write_transaction_ok;
 reg [AXI_ADDRESS_WIDTH - 1 : 0] write_address;
 reg write_address_ok;
 reg s_axi_ctrl_awready_int;
@@ -76,7 +76,7 @@ reg s_axi_ctrl_wready_int;
 axi4_lite_gpu_decode #(
     .FRAME_WIDTH_SCALED(FRAME_WIDTH_SCALED),
     .FRAME_HEIGHT_SCALED(FRAME_HEIGHT_SCALED),
-    .ADDRESS_WIDTH(8),
+    .ADDRESS_WIDTH(16),
     .DATA_WIDTH(AXI_DATA_WIDTH),
     .FBUF_ADDR_WIDTH(FBUF_ADDR_WIDTH),
     .FBUF_DATA_WIDTH(FBUF_DATA_WIDTH)
@@ -84,12 +84,12 @@ axi4_lite_gpu_decode #(
     .clk(s_axi_ctrl_aclk),
     .rst_n(s_axi_ctrl_aresetn),
     .read_processing_start(read_processing_start),
-    .read_address(read_address[7:0]),
+    .read_address(read_address[15:0]),
     .read_data(read_data_int),
     .read_resp_ok(read_resp_ok_int),
     .read_processing_done(read_processing_done),
     .write_processing_start(write_processing_start),
-    .write_address(write_address[7:0]),
+    .write_address(write_address[15:0]),
     .write_data(write_data),
     .write_processing_ok(write_processing_ok_int),
     .write_processing_done(write_processing_done),
@@ -218,9 +218,6 @@ always @(posedge s_axi_ctrl_aclk) begin
     end
 end
 
-assign s_axi_ctrl_bresp = !s_axi_ctrl_aresetn ? 2'b00 : (write_transaction_ok ? 0 : write_response);
-assign s_axi_ctrl_bvalid = !s_axi_ctrl_aresetn ? 0 : (write_transaction_ok ? 0 : write_response_ok);
-
 // Handle write event when both write address & data channel handshake is done
 always @(posedge s_axi_ctrl_aclk) begin
     if (!s_axi_ctrl_aresetn) begin
@@ -247,18 +244,10 @@ always @(posedge s_axi_ctrl_aclk) begin
 end
 
 // Mark write transaction as OK for one clock cycle when write response channel is ready
-always @(posedge s_axi_ctrl_aclk) begin
-    if (!s_axi_ctrl_aresetn) begin
-        write_transaction_ok <= 0;
-    end else begin
-        if (write_response_ok && s_axi_ctrl_bready) begin
-            write_transaction_ok <= 1;
-        end else begin
-            write_transaction_ok <= 0;
-        end
-    end
-end
+assign write_transaction_ok = !s_axi_ctrl_aresetn ? 0 : write_response_ok && s_axi_ctrl_bready;
 
+assign s_axi_ctrl_bresp = !s_axi_ctrl_aresetn ? 2'b00 : write_response;
+assign s_axi_ctrl_bvalid = !s_axi_ctrl_aresetn ? 0 : write_response_ok;
 
 // During reset all xVALID signals must be LOW
 
