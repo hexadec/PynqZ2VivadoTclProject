@@ -98,9 +98,9 @@ assert property (@(posedge clk) !rst_n |-> !s_axi_ctrl_rvalid && !s_axi_ctrl_bva
 // end
 assert property (@(posedge clk) !rst_n |-> !s_axi_ctrl_arready && !s_axi_ctrl_awready && !s_axi_ctrl_wready) else $error("All xVALID signals SHOULD be LOW during reset");
 
-int test_read_addresses[3] = '{0, 4, 8};
-int test_read_data[3] = '{32'h18, {16'(FRAME_HEIGHT_SCALED), 16'(FRAME_WIDTH_SCALED)}, 32'hffffffff};
-logic [1:0] test_read_responses[3] = '{2'b00, 2'b00, 2'b10};
+int test_read_addresses[4] = '{0, 4, 8, 12};
+int test_read_data[4] = '{32'h18, 32'h00, {16'(FRAME_HEIGHT_SCALED), 16'(FRAME_WIDTH_SCALED)}, 32'hffffffff};
+logic [1:0] test_read_responses[4] = '{2'b00, 2'b00, 2'b00, 2'b10};
 
 initial begin
     rst_n = 0;
@@ -108,7 +108,7 @@ initial begin
     #100
     rst_n = 1;
     #10
-    for (int i = 0; i < 3; i++) begin
+    for (int i = 0; i < 4; i++) begin
         #10
         $display("Starting read test #%d", i);
         s_axi_ctrl_araddr = test_read_addresses[i];
