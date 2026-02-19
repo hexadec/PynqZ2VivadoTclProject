@@ -16,7 +16,8 @@ $(project_name).runs/implementation1/design_1_wrapper.bit: $(project_name).xpr b
 simulate: $(project_name).xpr simulate.tcl
 	${vivado_folder}/vivado -mode batch -source simulate.tcl -verbose
 
-program: bitstream program_device.tcl
+program: program_device.tcl
+	test -f $(project_name).runs/implementation1/design_1_wrapper.bit
 	${vivado_folder}/vivado -mode batch -source program_device.tcl -verbose
     
 clean:
