@@ -22,15 +22,12 @@ wire en_wr_int;
 wire wrea_int;
 wire [ADDR_WIDTH - 1 : 0] addr_wr_int;
 wire [DATA_WIDTH - 1:0] din_int;
-wire dout_int;
 
 assign rst_busy = rst_busy_reg || !rst_req_n;
 assign en_wr_int = rst_busy ? 1 : en_wr;
 assign wrea_int = rst_busy ? 1 : wrea;
 assign addr_wr_int = rst_busy ? reset_counter : addr_wr;
 assign din_int = rst_busy ? 0 : din;
-
-assign dout = rst_busy ? 0 : dout_int;
 
 always @(posedge clk_wr) begin
     if (!rst_req_n) begin
@@ -56,7 +53,7 @@ framebuffer #(
     .clk_rd(clk_rd),
     .en_rd(en_rd),
     .addr_rd(addr_rd),
-    .dout(dout_int),
+    .dout(dout),
     .en_wr(en_wr_int),
     .wrea(wrea_int),
     .addr_wr(addr_wr_int),

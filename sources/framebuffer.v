@@ -16,6 +16,8 @@ module framebuffer #(
     generate
         if (2 ** ADDR_WIDTH < NUMBER_OF_PIXELS) begin
             not_all_pixels_are_addressable();
+        end else if (2 ** (ADDR_WIDTH - 1) > NUMBER_OF_PIXELS) begin
+            pixel_address_width_too_large();
         end
     endgenerate
 
