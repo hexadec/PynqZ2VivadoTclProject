@@ -1,4 +1,4 @@
-set output_resolution "2560x1440"
+set output_resolution "1920x1080"
 
 if {$output_resolution == "640x480"} {
   set param_fbuf_addr_width 19;
@@ -108,7 +108,7 @@ create_bd_cell -type module -reference test_pattern_generator test_pattern_gener
 create_bd_cell -type module -reference axi4_lite_gpu axi4_lite_gpu_0
 
 set_property -dict [list \
-  CONFIG.PCW_APU_PERIPHERAL_FREQMHZ {100} \
+  CONFIG.PCW_APU_PERIPHERAL_FREQMHZ {300} \
   CONFIG.PCW_UIPARAM_DDR_FREQ_MHZ {400} \
   CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {100} \
   CONFIG.PCW_USE_M_AXI_GP0 {1} \
@@ -116,6 +116,7 @@ set_property -dict [list \
   CONFIG.PCW_QSPI_GRP_SINGLE_SS_ENABLE {0} \
   CONFIG.PCW_SD0_PERIPHERAL_ENABLE {0} \
   CONFIG.PCW_USB0_PERIPHERAL_ENABLE {0} \
+  CONFIG.PCW_QSPI_PERIPHERAL_ENABLE {0} \
 ] [get_bd_cells processing_system7_0]
 
 if {$output_resolution == "640x480"} {
