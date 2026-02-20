@@ -61,7 +61,7 @@ set_property constrset constraints [get_runs impl_1]
 add_files -fileset sources_1 "${project_folder}/sources/block.v"
 add_files -fileset sources_1 "${project_folder}/sources/btn_debounce.v"
 add_files -fileset sources_1 "${project_folder}/sources/fbuf2rgb.v"
-add_files -fileset sources_1 "${project_folder}/sources/framebuffer.v"
+add_files -fileset sources_1 "${project_folder}/sources/framebuffer.sv"
 add_files -fileset sources_1 "${project_folder}/sources/framebuffer_with_reset.v"
 add_files -fileset sources_1 "${project_folder}/sources/framebuffer_mux.v"
 add_files -fileset sources_1 "${project_folder}/sources/color_converter.v"

@@ -12,3 +12,4 @@ block_design
 /vivado*.log
 /vivado*.jou
 /*.xsa
+/reports/*.txt

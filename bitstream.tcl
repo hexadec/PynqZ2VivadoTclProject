@@ -25,5 +25,12 @@ if {${run_progress} != "100%"} {
    error "ERROR: implementation1 failed"
 }
 open_run implementation1
-report_utilization -hierarchical_min_primitive_count 50 -name utilization_1
+puts "========================================"
+puts "\n\UTILIZATION REPORT\n\n"
+puts "========================================"
+report_utilization -hierarchical_min_primitive_count 50 -name utilization_1 -file reports/utilization.txt
+puts "========================================"
+puts "\n\nTIMING REPORT\n\n"
+puts "========================================"
+report_timing -nworst 5 -path_type full -input_pins -file reports/timing.txt
 write_hw_platform -fixed -include_bit -force -file ${project_folder}/design_1_wrapper.xsa
