@@ -321,5 +321,9 @@ set_property top design_1_wrapper [current_fileset]
 update_compile_order -fileset sources_1
 
 create_run synthesis1 -flow {Vivado Synthesis 2025}
+set_property AUTO_INCREMENTAL_CHECKPOINT 1 [get_runs synthesis1]
+set_property AUTO_INCREMENTAL_CHECKPOINT.DIRECTORY "${project_folder}/${project_name}.srcs/utils_1/imports/synthesis1" [get_runs synthesis1]
 create_run implementation1 -parent_run synthesis1 -flow {Vivado Implementation 2025}
+set_property AUTO_INCREMENTAL_CHECKPOINT 1 [get_runs implementation1]
+set_property AUTO_INCREMENTAL_CHECKPOINT.DIRECTORY "${project_folder}/${project_name}.srcs/utils_1/imports/implementation1 [get_runs implementation1]
 current_run [get_runs synthesis1]
