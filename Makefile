@@ -19,12 +19,16 @@ simulate: $(project_name).xpr simulate.tcl
 program: program_device.tcl
 	test -f $(project_name).runs/implementation1/design_1_wrapper.bit
 	${vivado_folder}/vivado -mode batch -source program_device.tcl -verbose
+
+program_ps7: program_ps7.tcl
+	${vivado_folder}/xsdb program_ps7.tcl
+	rm -f *ps7_init*
     
 clean:
 	@echo Removing generated files from project folder
 	rm -rf ${project_name}.cache ${project_name}.gen ${project_name}.hw ${project_name}.srcs
 	rm -rf ${project_name}.ip_user_files ${project_name}.runs ${project_name}.sim
 	rm -rf block_design .Xil NA
-	rm -f *.xsa *.bit
+	rm -f *.xsa *.bit ps7_init*
 	rm -f ${project_name}.xpr
 	rm -f vivado*.log vivado*.jou
