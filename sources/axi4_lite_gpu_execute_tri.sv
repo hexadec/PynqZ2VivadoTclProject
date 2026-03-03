@@ -30,7 +30,7 @@ module axi4_lite_gpu_execute_tri #(
     output [FBUF_DATA_WIDTH - 1 : 0] fbuf_data
 );
 
-enum logic [3:0] {IDLE, BUSY_PREPARE, BUSY_CALC, BUSY_EVAL, BUSY_WR_INCR, BUSY_INCR, DONE, ERR} state, next_state;
+enum logic [3:0] {IDLE, BUSY_CALC, BUSY_EVAL, BUSY_WR_INCR, BUSY_INCR, DONE, ERR} state, next_state;
 
 reg xy0_valid_int;
 reg xy1_valid_int;
@@ -47,12 +47,13 @@ reg [11:0] max_x, max_y;
 reg [11:0] min_x, min_y;
 
 reg signed [23:0] a, b, c;
-reg signed [23:0] x2y1, y2x1;
-reg signed [23:0] x0y2, y0x2;
-reg signed [23:0] x1y0, y1x0;
+reg signed [23:0] xy21;
+reg signed [23:0] xy02;
+reg signed [23:0] xy10;
 reg [2:0] signs;
+reg signs_valid;
 
-assign busy = state == BUSY_CALC || state == BUSY_WR_INCR || state == BUSY_PREPARE;
+assign busy = state == BUSY_CALC || state == BUSY_EVAL || state == BUSY_WR_INCR || state == BUSY_INCR;
 assign done = state == DONE;
 assign err = state == ERR;
 
@@ -75,14 +76,12 @@ always_comb begin
             (xy2_valid && (x2 >= FRAME_WIDTH_SCALED || y2 >= FRAME_HEIGHT_SCALED))) begin
             next_state = ERR;
         end else if (start && xy0_valid_int && xy1_valid_int && xy2_valid_int && color_valid_int) begin
-            next_state = BUSY_PREPARE;
+            next_state = BUSY_CALC;
         end else if (start) begin
             next_state = ERR;
         end else begin
             next_state = IDLE;
         end
-    end else if (state == BUSY_PREPARE) begin
-        next_state = BUSY_CALC;
     end else if (state == BUSY_CALC) begin
         next_state = BUSY_EVAL;
     end else if (state == BUSY_EVAL) begin
@@ -186,12 +185,10 @@ always_ff @(posedge clk) begin
         b <= 0;
         c <= 0;
         signs <= 0;
-        x2y1 <= 0;
-        y2x1 <= 0;
-        x0y2 <= 0;
-        y0x2 <= 0;
-        x1y0 <= 0;
-        y1x0 <= 0;
+        signs_valid <= 0;
+        xy21 <= 0;
+        xy02 <= 0;
+        xy10 <= 0;
     end else begin
         if (state == IDLE) begin
             if (start && xy0_valid_int && xy1_valid_int && xy2_valid_int) begin
@@ -203,27 +200,27 @@ always_ff @(posedge clk) begin
                 pos_x <= min(x0_int, x1_int, x2_int); // == min_x
                 pos_y <= min(y0_int, y1_int, y2_int); // == min_y
 
-                x2y1 <= x2_int * y1_int;
-                y2x1 <= y2_int * x1_int;
-                x0y2 <= x0_int * y2_int;
-                y0x2 <= y0_int * x2_int;
-                x1y0 <= x1_int * y0_int;
-                y1x0 <= y1_int * x0_int;
+                xy21 <= x2_int * y1_int - y2_int * x1_int;
+                xy02 <= x0_int * y2_int - y0_int * x2_int;
+                xy10 <= x1_int * y0_int - y1_int * x0_int;
             end
-        end else if (state == BUSY_PREPARE) begin
-            signs[0] <= ((y2_int - y1_int) * x0_int - (x2_int - x1_int) * y0_int + x2y1 - y2x1) < 8'sd0;
-            signs[1] <= ((y0_int - y2_int) * x1_int - (x0_int - x2_int) * y1_int + x0y2 - y0x2) < 8'sd0;
-            signs[2] <= ((y1_int - y0_int) * x2_int - (x1_int - x0_int) * y2_int + x1y0 - y1x0) < 8'sd0;
         end else if (state == BUSY_CALC) begin
-            a <= (y2_int - y1_int) * signed'(pos_x) - (x2_int - x1_int) * signed'(pos_y) + x2y1 - y2x1;
-            b <= (y0_int - y2_int) * signed'(pos_x) - (x0_int - x2_int) * signed'(pos_y) + x0y2 - y0x2;
-            c <= (y1_int - y0_int) * signed'(pos_x) - (x1_int - x0_int) * signed'(pos_y) + x1y0 - y1x0;
+            if (!signs_valid) begin
+                signs[0] <= ((y2_int - y1_int) * x0_int - (x2_int - x1_int) * y0_int + xy21) < 8'sd0;
+                signs[1] <= ((y0_int - y2_int) * x1_int - (x0_int - x2_int) * y1_int + xy02) < 8'sd0;
+                signs[2] <= ((y1_int - y0_int) * x2_int - (x1_int - x0_int) * y2_int + xy10) < 8'sd0;
+                signs_valid <= 1;
+            end
+
+            a <= (y2_int - y1_int) * signed'(pos_x) - (x2_int - x1_int) * signed'(pos_y) + xy21;
+            b <= (y0_int - y2_int) * signed'(pos_x) - (x0_int - x2_int) * signed'(pos_y) + xy02;
+            c <= (y1_int - y0_int) * signed'(pos_x) - (x1_int - x0_int) * signed'(pos_y) + xy10;
         end else if (state == BUSY_WR_INCR || state == BUSY_INCR) begin
             if (pos_x < max_x) begin
                 pos_x <= pos_x + 1;
             end else begin
-                pos_x <= min_x;
                 if (pos_y < max_y) begin
+                    pos_x <= min_x;
                     pos_y <= pos_y + 1;
                 end
             end
@@ -238,12 +235,10 @@ always_ff @(posedge clk) begin
             b <= 0;
             c <= 0;
             signs <= 0;
-            x2y1 <= 0;
-            y2x1 <= 0;
-            x0y2 <= 0;
-            y0x2 <= 0;
-            x1y0 <= 0;
-            y1x0 <= 0;
+            signs_valid <= 0;
+            xy21 <= 0;
+            xy02 <= 0;
+            xy10 <= 0;
         end
     end
 end
