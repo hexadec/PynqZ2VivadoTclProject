@@ -86,7 +86,56 @@ axi4_lite_gpu_execute_rect #(
     .fbuf_data(rect_fbuf_data)
 );
 
-enum reg [3:0] {IDLE = 0, BUSY_SINGLE, BUSY_RESET, BUSY_RECT, LOAD_RECT_COORDS_LEFT, LOAD_RECT_COORDS_RIGHT, LOAD_RECT_COLOR} execute_unit_state, next_state;
+wire tri_start;
+wire tri_busy;
+wire tri_done;
+wire tri_err;
+
+wire tri_xy0_valid, tri_xy1_valid, tri_xy2_valid;
+wire [11:0] tri_x0, tri_y0, tri_x1, tri_y1, tri_x2, tri_y2;
+wire tri_color_valid;
+wire [7:0] tri_color;
+
+wire tri_fbuf_en_wr;
+wire tri_fbuf_wrea;
+wire [FBUF_ADDR_WIDTH - 1 : 0] tri_fbuf_addr;
+wire [FBUF_DATA_WIDTH - 1 : 0] tri_fbuf_data;
+
+axi4_lite_gpu_execute_tri #(
+    .FRAME_WIDTH_SCALED(FRAME_WIDTH_SCALED),
+    .FRAME_HEIGHT_SCALED(FRAME_HEIGHT_SCALED),
+    .COLOR_WIDTH(8),
+    .FBUF_ADDR_WIDTH(FBUF_ADDR_WIDTH),
+    .FBUF_DATA_WIDTH(FBUF_DATA_WIDTH)
+) axi4_lite_gpu_execute_tri_inst (
+    .clk(clk),
+    .rst_n(rst_n),
+
+    .start(tri_start),
+    .busy(tri_busy),
+    .done(tri_done),
+    .err(tri_err),
+
+    .xy0_valid(tri_xy0_valid),
+    .x0(tri_x0),
+    .y0(tri_y0),
+    .xy1_valid(tri_xy1_valid),
+    .x1(tri_x1),
+    .y1(tri_y1),
+    .xy2_valid(tri_xy2_valid),
+    .x2(tri_x2),
+    .y2(tri_y2),
+    .color_valid(tri_color_valid),
+    .color(tri_color),
+
+    .fbuf_en_wr(tri_fbuf_en_wr),
+    .fbuf_wrea(tri_fbuf_wrea),
+    .fbuf_addr(tri_fbuf_addr),
+    .fbuf_data(tri_fbuf_data)
+);
+
+enum reg [4:0] {IDLE = 0, BUSY_SINGLE, BUSY_RESET, BUSY_RECT, LOAD_RECT_COORDS_LEFT, LOAD_RECT_COORDS_RIGHT, LOAD_RECT_COLOR,
+                BUSY_TRI, LOAD_TRI_COORDS_XY0, LOAD_TRI_COORDS_XY1, LOAD_TRI_COORDS_XY2, LOAD_TRI_COLOR} execute_unit_state, next_state;
 
 assign write_processing_ok = !rst_n ? 0 : (execute_unit_state == IDLE && write_processing_start) ? 1 : 0;
 assign write_processing_done = !rst_n ? 0 : (execute_unit_state == IDLE && write_processing_start) ? 1 : 0;
@@ -120,6 +169,16 @@ always_comb begin
                             next_state = LOAD_RECT_COORDS_RIGHT;
                         32'h10C:
                             next_state = LOAD_RECT_COLOR;
+                        32'h200:
+                            next_state = BUSY_TRI;
+                        32'h204:
+                            next_state = LOAD_TRI_COORDS_XY0;
+                        32'h208:
+                            next_state = LOAD_TRI_COORDS_XY1;
+                        32'h20C:
+                            next_state = LOAD_TRI_COORDS_XY2;
+                        32'h210:
+                            next_state = LOAD_TRI_COLOR;
                     endcase
                 end
             end
@@ -130,6 +189,10 @@ always_comb begin
             BUSY_RECT:
                 if ((rect_busy || rect_start) && !rect_done && !rect_err) begin
                     next_state = BUSY_RECT;
+                end
+            BUSY_TRI:
+                if ((tri_busy || tri_start) && !tri_done && !tri_err) begin
+                    next_state = BUSY_TRI;
                 end
         endcase
     end
@@ -147,6 +210,21 @@ assign rect_color_valid = (execute_unit_state == LOAD_RECT_COLOR);
 assign rect_color = write_data_reg[7:0];
 
 assign rect_start = (execute_unit_state == BUSY_RECT) && !rect_busy && !rect_done && !rect_err;
+
+assign tri_xy0_valid = (execute_unit_state == LOAD_TRI_COORDS_XY0);
+assign tri_xy1_valid = (execute_unit_state == LOAD_TRI_COORDS_XY1);
+assign tri_xy2_valid = (execute_unit_state == LOAD_TRI_COORDS_XY2);
+assign tri_x0 = write_data_reg[27:16];
+assign tri_y0 = write_data_reg[11:0];
+assign tri_x1 = write_data_reg[27:16];
+assign tri_y1 = write_data_reg[11:0];
+assign tri_x2 = write_data_reg[27:16];
+assign tri_y2 = write_data_reg[11:0];
+
+assign tri_color_valid = (execute_unit_state == LOAD_TRI_COLOR);
+assign tri_color = write_data_reg[7:0];
+
+assign tri_start = (execute_unit_state == BUSY_TRI) && !tri_busy && !tri_done && !tri_err;
 
 always_comb begin
     case (execute_unit_state)
@@ -170,6 +248,13 @@ always_comb begin
             fbuf_wrea = rect_fbuf_wrea;
             fbuf_addr = rect_fbuf_addr;
             fbuf_data = rect_fbuf_data;
+        end
+        BUSY_TRI: begin
+            fbuf_rst_req_n = 1;
+            fbuf_en_wr = tri_fbuf_en_wr;
+            fbuf_wrea = tri_fbuf_wrea;
+            fbuf_addr = tri_fbuf_addr;
+            fbuf_data = tri_fbuf_data;
         end
         default: begin
             fbuf_rst_req_n = 1;
