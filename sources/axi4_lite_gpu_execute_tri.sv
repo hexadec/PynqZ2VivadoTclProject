@@ -37,9 +37,9 @@ reg xy1_valid_int;
 reg xy2_valid_int;
 reg color_valid_int;
 
-reg [11:0] x0_int, y0_int;
-reg [11:0] x1_int, y1_int;
-reg [11:0] x2_int, y2_int;
+reg signed [12:0] x0_int, y0_int;
+reg signed [12:0] x1_int, y1_int;
+reg signed [12:0] x2_int, y2_int;
 reg [COLOR_WIDTH - 1:0] color_int;
 
 reg [11:0] pos_x, pos_y;
@@ -74,7 +74,7 @@ always_comb begin
             (xy1_valid && (x1 >= FRAME_WIDTH_SCALED || y1 >= FRAME_HEIGHT_SCALED)) ||
             (xy2_valid && (x2 >= FRAME_WIDTH_SCALED || y2 >= FRAME_HEIGHT_SCALED))) begin
             next_state = ERR;
-        end else if (start && xy0_valid && xy1_valid && xy2_valid) begin
+        end else if (start && xy0_valid_int && xy1_valid_int && xy2_valid_int && color_valid_int) begin
             next_state = BUSY_PREPARE;
         end else if (start) begin
             next_state = ERR;
@@ -86,7 +86,7 @@ always_comb begin
     end else if (state == BUSY_CALC) begin
         next_state = BUSY_EVAL;
     end else if (state == BUSY_EVAL) begin
-        if (a[23] == signs[0] && b[23] == signs[1] && c[23] == signs[2]) begin
+        if ((a[23] == signs[0] || a == 0) && (b[23] == signs[1] || b == 0) && (c[23] == signs[2] || c == 0)) begin
             next_state = BUSY_WR_INCR;
         end else begin
             next_state = BUSY_INCR;
@@ -211,9 +211,9 @@ always_ff @(posedge clk) begin
                 y1x0 <= y1_int * x0_int;
             end
         end else if (state == BUSY_PREPARE) begin
-            signs[0] <= (y2_int - y1_int) * x0_int - (x2_int - x1_int) * y0_int + x2y1 - y2x1;
-            signs[1] <= (y0_int - y2_int) * x1_int - (x0_int - x2_int) * y1_int + x0y2 - y0x2;
-            signs[2] <= (y1_int - y0_int) * x2_int - (x1_int - x0_int) * y2_int + x1y0 - y1x0;
+            signs[0] <= ((y2_int - y1_int) * x0_int - (x2_int - x1_int) * y0_int + x2y1 - y2x1) < 8'sd0;
+            signs[1] <= ((y0_int - y2_int) * x1_int - (x0_int - x2_int) * y1_int + x0y2 - y0x2) < 8'sd0;
+            signs[2] <= ((y1_int - y0_int) * x2_int - (x1_int - x0_int) * y2_int + x1y0 - y1x0) < 8'sd0;
         end else if (state == BUSY_CALC) begin
             a <= (y2_int - y1_int) * signed'(pos_x) - (x2_int - x1_int) * signed'(pos_y) + x2y1 - y2x1;
             b <= (y0_int - y2_int) * signed'(pos_x) - (x0_int - x2_int) * signed'(pos_y) + x0y2 - y0x2;
@@ -227,7 +227,7 @@ always_ff @(posedge clk) begin
                     pos_y <= pos_y + 1;
                 end
             end
-        end else begin
+        end else if (state == DONE || state == ERR) begin
             min_x <= 0;
             min_y <= 0;
             max_x <= 0;

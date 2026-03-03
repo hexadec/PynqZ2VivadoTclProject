@@ -37,7 +37,7 @@ axi4_lite_gpu_execute_tri #(
     .COLOR_WIDTH(COLOR_WIDTH),
     .FBUF_ADDR_WIDTH(FBUF_ADDR_WIDTH),
     .FBUF_DATA_WIDTH(FBUF_DATA_WIDTH)
-) axi4_lite_gpu_execute_rect_inst (
+) axi4_lite_gpu_execute_tri_inst (
     .clk(clk),
     .rst_n(rst_n),
 
@@ -53,8 +53,8 @@ axi4_lite_gpu_execute_tri #(
     .x1(x1),
     .y1(y1),
     .xy2_valid(xy2_valid),
-    .x2(x1),
-    .y2(y1),
+    .x2(x2),
+    .y2(y2),
     .color_valid(color_valid),
     .color(color),
 
@@ -79,6 +79,7 @@ initial begin
     x2 = 3;
     y2 = 5;
     xy2_valid = 1;
+    color_valid = 1;
     color = 8'hff;
     #20
     xy0_valid = 0;
