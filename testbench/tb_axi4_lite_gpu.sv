@@ -80,23 +80,41 @@ axi4_lite_gpu #(
     .fbuf_rst_req_n(fbuf_rst_req_n)
 );
 
+task axi4_lite_write(input logic [AXI_ADDRESS_WIDTH - 1 : 0] address, 
+                    input logic [AXI_DATA_WIDTH - 1 : 0] data);
+    s_axi_ctrl_awaddr = address;
+    s_axi_ctrl_awvalid = 1;
+    s_axi_ctrl_wdata = data;
+    s_axi_ctrl_wvalid = 1;
+    #10
+    assert(s_axi_ctrl_wready) else $error("WREADY MUST be HIGH after one clock cycle of WVALID");
+    assert(s_axi_ctrl_awready) else $error("AWREADY MUST be HIGH after one clock cycle of AWVALID");
+    while (!s_axi_ctrl_wready && !s_axi_ctrl_awready) begin
+        #10
+        $display("Waiting for AWREADY/WREADY (%b, %b)", s_axi_ctrl_awready, s_axi_ctrl_wready);
+    end
+    s_axi_ctrl_awaddr = 0;
+    s_axi_ctrl_awvalid = 0;
+    s_axi_ctrl_wdata = 0;
+    s_axi_ctrl_wvalid = 0;
+    #20 // TODO: decrease to 10
+    assert(s_axi_ctrl_bvalid) else $error("BVALID MUST be HIGH");
+    while (!s_axi_ctrl_bvalid) begin
+        #10
+        $display("Waiting for BVALID (%b)", s_axi_ctrl_bvalid);
+    end
+    assert(s_axi_ctrl_bresp == 2'b00) else $error("BRESP MUST be 2'b00 (RESP_OKAY)");
+    s_axi_ctrl_bready = 1;
+    #10
+    assert(!s_axi_ctrl_bvalid) else $error("BVALID MUST be LOW");
+    s_axi_ctrl_bready = 0;
+endtask
+
 always #5 clk = ~clk;
 
-// always @(posedge clk) begin
-//     if (!rst_n) begin
-//         assert(!s_axi_ctrl_rvalid && !s_axi_ctrl_bvalid) else $error("All xVALID signals MUST be LOW during reset");
-//     end
-// end
-assert property (@(posedge clk) !rst_n |-> !s_axi_ctrl_rvalid && !s_axi_ctrl_bvalid);
+assert property (@(posedge clk) !rst_n |-> !s_axi_ctrl_rvalid && !s_axi_ctrl_bvalid)  else $error("All xVALID signals SHOULD be LOW during reset");
 
-// always @(posedge clk) begin
-//     if (!rst_n) begin
-//         if (!(!s_axi_ctrl_arready && !s_axi_ctrl_awready && !s_axi_ctrl_wready)) begin
-//             $error("All xVALID signals SHOULD be LOW during reset");
-//         end
-//     end
-// end
-assert property (@(posedge clk) !rst_n |-> !s_axi_ctrl_arready && !s_axi_ctrl_awready && !s_axi_ctrl_wready) else $error("All xVALID signals SHOULD be LOW during reset");
+assert property (@(posedge clk) !rst_n |-> !s_axi_ctrl_arready && !s_axi_ctrl_awready && !s_axi_ctrl_wready) else $error("All xREADY signals SHOULD be LOW during reset");
 
 int test_read_addresses[4] = '{0, 4, 8, 12};
 int test_read_data[4] = '{32'h18, 32'h00, {16'(FRAME_HEIGHT_SCALED), 16'(FRAME_WIDTH_SCALED)}, 32'hffffffff};
@@ -129,105 +147,37 @@ initial begin
     #10
     fbuf_rst_busy = 0;
     $display("Starting single pixel write test...");
-    s_axi_ctrl_awvalid = 1;
-    s_axi_ctrl_awaddr = 32'h00;
-    #10
-    assert(s_axi_ctrl_awready) else $error("AWREADY MUST be HIGH after one clock cycle of AWVALID");
-    s_axi_ctrl_awvalid = 0;
-    s_axi_ctrl_awaddr = 32'h00;
-    s_axi_ctrl_wvalid = 1;
-    s_axi_ctrl_wdata = 32'b00000000011110000000111111100011;
-    #10
-    assert(s_axi_ctrl_wready) else $error("WREADY MUST be HIGH after one clock cycle of WVALID");
-    s_axi_ctrl_wvalid = 0;
-    s_axi_ctrl_wdata = 32'h00;
-    #20 // TODO: Modify according to expected behaviour
-    assert(s_axi_ctrl_bvalid) else $error("BVALID MUST be HIGH");
-    assert(s_axi_ctrl_bresp == 2'b00) else $error("BRESP MUST be 2'b00 (RESP_OKAY)");
-    s_axi_ctrl_bready = 1;
-    #10
-    assert(!s_axi_ctrl_bvalid) else $error("BVALID MUST be LOW");
-    s_axi_ctrl_bready = 0;
+    axi4_lite_write(.address(32'h00), .data(32'b00000000011110000000111111100011));
     #10
     $display("Starting rect write test...");
     $display("Writing rect LEFT");
-    s_axi_ctrl_awvalid = 1;
-    s_axi_ctrl_awaddr = 32'h104;
-    s_axi_ctrl_wvalid = 1;
-    s_axi_ctrl_wdata[27:16] = 12'd10;
-    s_axi_ctrl_wdata[15:0] = 12'd10;
-    #10
-    assert(s_axi_ctrl_awready) else $error("AWREADY MUST be HIGH after one clock cycle of AWVALID");
-    assert(s_axi_ctrl_wready) else $error("WREADY MUST be HIGH after one clock cycle of WVALID");
-    s_axi_ctrl_awvalid = 0;
-    s_axi_ctrl_awaddr = 32'h00;
-    s_axi_ctrl_wvalid = 0;
-    s_axi_ctrl_wdata = 32'h00;
-    #20 // TODO: Modify according to expected behaviour
-    assert(s_axi_ctrl_bvalid) else $error("BVALID MUST be HIGH");
-    assert(s_axi_ctrl_bresp == 2'b00) else $error("BRESP MUST be 2'b00 (RESP_OKAY)");
-    s_axi_ctrl_bready = 1;
-    #10
-    assert(!s_axi_ctrl_bvalid) else $error("BVALID MUST be LOW");
-    s_axi_ctrl_bready = 0;
+    axi4_lite_write(.address(32'h104), .data(32'({16'd10, 16'd10})));
     #10
     $display("Writing rect RIGHT");
-    s_axi_ctrl_awvalid = 1;
-    s_axi_ctrl_awaddr = 32'h108;
-    s_axi_ctrl_wvalid = 1;
-    s_axi_ctrl_wdata[27:16] = 12'd16;
-    s_axi_ctrl_wdata[15:0] = 12'd16;
-    #10
-    assert(s_axi_ctrl_awready) else $error("AWREADY MUST be HIGH after one clock cycle of AWVALID");
-    assert(s_axi_ctrl_wready) else $error("WREADY MUST be HIGH after one clock cycle of WVALID");
-    s_axi_ctrl_awvalid = 0;
-    s_axi_ctrl_awaddr = 32'h00;
-    s_axi_ctrl_wvalid = 0;
-    s_axi_ctrl_wdata = 32'h00;
-    #20 // TODO: Modify according to expected behaviour
-    assert(s_axi_ctrl_bvalid) else $error("BVALID MUST be HIGH");
-    assert(s_axi_ctrl_bresp == 2'b00) else $error("BRESP MUST be 2'b00 (RESP_OKAY)");
-    s_axi_ctrl_bready = 1;
-    #10
-    assert(!s_axi_ctrl_bvalid) else $error("BVALID MUST be LOW");
+    axi4_lite_write(.address(32'h108), .data(32'({16'd16, 16'd16})));
     #10
     $display("Writing rect COLOR");
-    s_axi_ctrl_awvalid = 1;
-    s_axi_ctrl_awaddr = 32'h10C;
-    s_axi_ctrl_wvalid = 1;
-    s_axi_ctrl_wdata = 32'b11111100;
+    axi4_lite_write(.address(32'h10C), .data(32'b11111100));
     #10
-    assert(s_axi_ctrl_awready) else $error("AWREADY MUST be HIGH after one clock cycle of AWVALID");
-    assert(s_axi_ctrl_wready) else $error("WREADY MUST be HIGH after one clock cycle of WVALID");
-    s_axi_ctrl_awvalid = 0;
-    s_axi_ctrl_awaddr = 32'h00;
-    s_axi_ctrl_wvalid = 0;
-    s_axi_ctrl_wdata = 32'h00;
-    #20 // TODO: Modify according to expected behaviour
-    assert(s_axi_ctrl_bvalid) else $error("BVALID MUST be HIGH");
-    assert(s_axi_ctrl_bresp == 2'b00) else $error("BRESP MUST be 2'b00 (RESP_OKAY)");
-    s_axi_ctrl_bready = 1;
-    #10
-    assert(!s_axi_ctrl_bvalid) else $error("BVALID MUST be LOW");
     $display("Writing rect START DRAW");
-    s_axi_ctrl_awvalid = 1;
-    s_axi_ctrl_awaddr = 32'h100;
-    s_axi_ctrl_wvalid = 1;
-    s_axi_ctrl_wdata = 32'h00;
+    axi4_lite_write(.address(32'h100), .data(32'h00));
+    #600
+    $display("Starting triangle write test...");
+    $display("Writing triangle XY0");
+    axi4_lite_write(.address(32'h204), .data(32'({16'd10, 16'd1})));
     #10
-    assert(s_axi_ctrl_awready) else $error("AWREADY MUST be HIGH after one clock cycle of AWVALID");
-    assert(s_axi_ctrl_wready) else $error("WREADY MUST be HIGH after one clock cycle of WVALID");
-    s_axi_ctrl_awvalid = 0;
-    s_axi_ctrl_awaddr = 32'h00;
-    s_axi_ctrl_wvalid = 0;
-    s_axi_ctrl_wdata = 32'h00;
-    #20 // TODO: Modify according to expected behaviour
-    assert(s_axi_ctrl_bvalid) else $error("BVALID MUST be HIGH");
-    assert(s_axi_ctrl_bresp == 2'b00) else $error("BRESP MUST be 2'b00 (RESP_OKAY)");
-    s_axi_ctrl_bready = 1;
+    $display("Writing triangle XY0");
+    axi4_lite_write(.address(32'h208), .data(32'({16'd1, 16'd5})));
     #10
-    assert(!s_axi_ctrl_bvalid) else $error("BVALID MUST be LOW");
-    #100
+    $display("Writing triangle XY0");
+    axi4_lite_write(.address(32'h20C), .data(32'({16'd3, 16'd3})));
+    #10
+    $display("Writing triangle COLOR");
+    axi4_lite_write(.address(32'h210), .data(32'b00011100));
+    #10
+    $display("Writing triangle START DRAW");
+    axi4_lite_write(.address(32'h200), .data(32'h00));
+    #1500
     $display("Basic read and write test finished");
     $finish;
 end
