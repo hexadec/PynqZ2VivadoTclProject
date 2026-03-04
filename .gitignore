@@ -14,3 +14,4 @@ block_design
 /*.xsa
 /*.bit
 /reports/*.txt
+ps7_init*

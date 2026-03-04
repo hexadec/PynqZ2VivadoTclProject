@@ -20,9 +20,11 @@ program: program_device.tcl
 	test -f $(project_name).runs/implementation1/design_1_wrapper.bit
 	${vivado_folder}/vivado -mode batch -source program_device.tcl -verbose
 
-program_ps7: program_ps7.tcl
+ps7_program: program_ps7.tcl
 	${vivado_folder}/xsdb program_ps7.tcl
-	rm -f *ps7_init*
+
+ps7_clean:
+	rm -rf ps7_init*
     
 clean:
 	@echo Removing generated files from project folder
