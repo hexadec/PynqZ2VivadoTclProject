@@ -70,6 +70,7 @@ add_files -fileset sources_1 "${project_folder}/sources/axi4_lite_gpu.v"
 add_files -fileset sources_1 "${project_folder}/sources/axi4_lite_gpu_decode.sv"
 add_files -fileset sources_1 "${project_folder}/sources/axi4_lite_gpu_execute_rect.sv"
 add_files -fileset sources_1 "${project_folder}/sources/axi4_lite_gpu_execute_tri.sv"
+add_files -fileset sources_1 "${project_folder}/sources/axi4_lite_gpu_execute_cir.sv"
 update_compile_order -fileset sources_1
 file mkdir "${project_folder}/block_design"
 create_bd_design -dir "${project_folder}/block_design" design_1
@@ -81,6 +82,7 @@ add_files -fileset sim_1 "${project_folder}/testbench/tb_fbuf2rgb.sv"
 add_files -fileset sim_1 "${project_folder}/testbench/tb_axi4_lite_gpu.sv"
 add_files -fileset sim_1 "${project_folder}/testbench/tb_axi4_lite_gpu_execute_rect.sv"
 add_files -fileset sim_1 "${project_folder}/testbench/tb_axi4_lite_gpu_execute_tri.sv"
+add_files -fileset sim_1 "${project_folder}/testbench/tb_axi4_lite_gpu_execute_cir.sv"
 add_files -fileset sim_1 "${project_folder}/testbench/tb_framebuffer.sv"
 update_compile_order -fileset sim_1
 
