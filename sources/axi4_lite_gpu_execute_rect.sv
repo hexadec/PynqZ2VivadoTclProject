@@ -27,7 +27,7 @@ module axi4_lite_gpu_execute_rect #(
     output [FBUF_DATA_WIDTH - 1 : 0] fbuf_data
 );
 
-enum logic [1:0] {IDLE, BUSY, DONE, ERR} state, next_state;
+enum logic [2:0] {IDLE, BUSY_PREPARE, BUSY, BUSY_LASTWRITE, DONE, ERR} state, next_state;
 
 reg left_valid_int;
 reg right_valid_int;
@@ -43,8 +43,9 @@ reg [11:0] pos_x, pos_y;
 reg [11:0] max_x, max_y;
 reg [11:0] min_x, min_y;
 
+reg [FBUF_ADDR_WIDTH - 1 : 0] fbuf_addr_int;
 
-assign busy = state == BUSY;
+assign busy = state == BUSY_PREPARE || state == BUSY || state == BUSY_LASTWRITE;
 assign done = state == DONE;
 assign err = state == ERR;
 
@@ -66,15 +67,17 @@ always_comb begin
             (right_valid && (right_x >= FRAME_WIDTH_SCALED || right_y >= FRAME_HEIGHT_SCALED))) begin
             next_state = ERR;
         end else if (start && left_valid_int && right_valid_int && color_valid_int) begin
-            next_state = BUSY;
+            next_state = BUSY_PREPARE;
         end else if (start) begin
             next_state = ERR;
         end else begin
             next_state = IDLE;
         end
-    end else if (state == BUSY) begin
+    end else if (state == BUSY_LASTWRITE) begin
+        next_state = DONE;
+    end else if (state == BUSY || state == BUSY_PREPARE) begin
         if (pos_x == max_x && pos_y == max_y) begin
-            next_state = DONE;
+            next_state = BUSY_LASTWRITE;
         end else begin
             next_state = BUSY;
         end
@@ -136,6 +139,7 @@ always_ff @(posedge clk) begin
         max_y <= 0;
         pos_x <= 0;
         pos_y <= 0;
+        fbuf_addr_int <= 0;
     end else begin
         if (state == IDLE) begin
             if (start && left_valid_int && right_valid_int && color_valid_int) begin
@@ -147,7 +151,7 @@ always_ff @(posedge clk) begin
                 pos_x <= left_x_int < right_x_int ? left_x_int : right_x_int; // == min_x
                 pos_y <= left_y_int < right_y_int ? left_y_int : right_y_int; // == min_y
             end
-        end else if (state == BUSY) begin
+        end else if (state == BUSY || state == BUSY_PREPARE) begin
             if (pos_x < max_x) begin
                 pos_x <= pos_x + 1;
             end else begin
@@ -156,6 +160,7 @@ always_ff @(posedge clk) begin
                     pos_y <= pos_y + 1;
                 end
             end
+            fbuf_addr_int <= (pos_y) * FBUF_ADDR_WIDTH'(FRAME_WIDTH_SCALED) + pos_x;
         end else begin
             min_x <= 0;
             min_y <= 0;
@@ -163,14 +168,15 @@ always_ff @(posedge clk) begin
             max_y <= 0;
             pos_x <= 0;
             pos_y <= 0;
+            fbuf_addr_int <= 0;
         end
     end
 end
 
 
-assign fbuf_en_wr = state == BUSY;
-assign fbuf_wrea = state == BUSY;
-assign fbuf_addr = state == BUSY ? pos_y * FBUF_ADDR_WIDTH'(FRAME_WIDTH_SCALED) + pos_x : 0;
-assign fbuf_data = state == BUSY ? color_int : 0;
+assign fbuf_en_wr = state == BUSY || state == BUSY_LASTWRITE;
+assign fbuf_wrea = state == BUSY || state == BUSY_LASTWRITE;
+assign fbuf_addr = state == BUSY || state == BUSY_LASTWRITE ? fbuf_addr_int : 0;
+assign fbuf_data = state == BUSY || state == BUSY_LASTWRITE ? color_int : 0;
 
 endmodule
