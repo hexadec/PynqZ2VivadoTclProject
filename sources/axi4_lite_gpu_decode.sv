@@ -134,8 +134,55 @@ axi4_lite_gpu_execute_tri #(
     .fbuf_data(tri_fbuf_data)
 );
 
-enum reg [4:0] {IDLE = 0, BUSY_SINGLE, BUSY_RESET, BUSY_RECT, LOAD_RECT_COORDS_LEFT, LOAD_RECT_COORDS_RIGHT, LOAD_RECT_COLOR,
-                BUSY_TRI, LOAD_TRI_COORDS_XY0, LOAD_TRI_COORDS_XY1, LOAD_TRI_COORDS_XY2, LOAD_TRI_COLOR} execute_unit_state, next_state;
+
+wire cir_start;
+wire cir_busy;
+wire cir_done;
+wire cir_err;
+
+wire cir_center_valid, cir_radius_valid;
+wire [11:0] cir_center_x, cir_center_y, cir_radius;
+wire cir_color_valid;
+wire [7:0] cir_color;
+
+wire cir_fbuf_en_wr;
+wire cir_fbuf_wrea;
+wire [FBUF_ADDR_WIDTH - 1 : 0] cir_fbuf_addr;
+wire [FBUF_DATA_WIDTH - 1 : 0] cir_fbuf_data;
+
+axi4_lite_gpu_execute_cir #(
+    .FRAME_WIDTH_SCALED(FRAME_WIDTH_SCALED),
+    .FRAME_HEIGHT_SCALED(FRAME_HEIGHT_SCALED),
+    .COLOR_WIDTH(8),
+    .FBUF_ADDR_WIDTH(FBUF_ADDR_WIDTH),
+    .FBUF_DATA_WIDTH(FBUF_DATA_WIDTH)
+) axi4_lite_gpu_execute_cir_inst (
+    .clk(clk),
+    .rst_n(rst_n),
+
+    .start(cir_start),
+    .busy(cir_busy),
+    .done(cir_done),
+    .err(cir_err),
+
+    .center_valid(cir_center_valid),
+    .center_x(cir_center_x),
+    .center_y(cir_center_y),
+    .radius_valid(cir_radius_valid),
+    .radius(cir_radius),
+    .color_valid(cir_color_valid),
+    .color(cir_color),
+
+    .fbuf_en_wr(cir_fbuf_en_wr),
+    .fbuf_wrea(cir_fbuf_wrea),
+    .fbuf_addr(cir_fbuf_addr),
+    .fbuf_data(cir_fbuf_data)
+);
+
+enum reg [4:0] {IDLE = 0, BUSY_SINGLE, BUSY_RESET, 
+                BUSY_RECT, LOAD_RECT_COORDS_LEFT, LOAD_RECT_COORDS_RIGHT, LOAD_RECT_COLOR,
+                BUSY_TRI, LOAD_TRI_COORDS_XY0, LOAD_TRI_COORDS_XY1, LOAD_TRI_COORDS_XY2, LOAD_TRI_COLOR,
+                BUSY_CIR, LOAD_CIR_COORD_CENTER, LOAD_CIR_RADIUS, LOAD_CIR_COLOR} execute_unit_state, next_state;
 
 assign write_processing_ok = !rst_n ? 0 : (execute_unit_state == IDLE && write_processing_start) ? 1 : 0;
 assign write_processing_done = !rst_n ? 0 : (execute_unit_state == IDLE && write_processing_start) ? 1 : 0;
@@ -179,6 +226,14 @@ always_comb begin
                             next_state = LOAD_TRI_COORDS_XY2;
                         32'h210:
                             next_state = LOAD_TRI_COLOR;
+                        32'h300:
+                            next_state = BUSY_CIR;
+                        32'h304:
+                            next_state = LOAD_CIR_COORD_CENTER;
+                        32'h308:
+                            next_state = LOAD_CIR_RADIUS;
+                        32'h30C:
+                            next_state = LOAD_CIR_COLOR;
                     endcase
                 end
             end
@@ -193,6 +248,10 @@ always_comb begin
             BUSY_TRI:
                 if ((tri_busy || tri_start) && !tri_done && !tri_err) begin
                     next_state = BUSY_TRI;
+                end
+            BUSY_CIR:
+                if ((cir_busy || cir_start) && !cir_done && !cir_err) begin
+                    next_state = BUSY_CIR;
                 end
         endcase
     end
@@ -226,6 +285,17 @@ assign tri_color = write_data_reg[7:0];
 
 assign tri_start = (execute_unit_state == BUSY_TRI) && !tri_busy && !tri_done && !tri_err;
 
+assign cir_center_valid = (execute_unit_state == LOAD_CIR_COORD_CENTER);
+assign cir_radius_valid = (execute_unit_state == LOAD_CIR_RADIUS);
+assign cir_center_x = write_data_reg[27:16];
+assign cir_center_y = write_data_reg[11:0];
+assign cir_radius = write_data_reg[11:0];
+
+assign cir_color_valid = (execute_unit_state == LOAD_CIR_COLOR);
+assign cir_color = write_data_reg[7:0];
+
+assign cir_start = (execute_unit_state == BUSY_CIR) && !cir_busy && !cir_done && !cir_err;
+
 always_comb begin
     case (execute_unit_state)
         BUSY_RESET: begin
@@ -255,6 +325,13 @@ always_comb begin
             fbuf_wrea = tri_fbuf_wrea;
             fbuf_addr = tri_fbuf_addr;
             fbuf_data = tri_fbuf_data;
+        end
+        BUSY_CIR: begin
+            fbuf_rst_req_n = 1;
+            fbuf_en_wr = cir_fbuf_en_wr;
+            fbuf_wrea = cir_fbuf_wrea;
+            fbuf_addr = cir_fbuf_addr;
+            fbuf_data = cir_fbuf_data;
         end
         default: begin
             fbuf_rst_req_n = 1;

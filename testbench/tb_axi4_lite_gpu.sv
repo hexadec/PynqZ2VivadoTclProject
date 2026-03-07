@@ -178,6 +178,19 @@ initial begin
     $display("Writing triangle START DRAW");
     axi4_lite_write(.address(32'h200), .data(32'h00));
     #1500
+    $display("Starting circle write test...");
+    $display("Writing circle CENTER");
+    axi4_lite_write(.address(32'h304), .data(32'({16'd20, 16'd20})));
+    #10
+    $display("Writing circle RADIUS");
+    axi4_lite_write(.address(32'h308), .data(32'd4));
+    #10
+    $display("Writing circle COLOR");
+    axi4_lite_write(.address(32'h30C), .data(32'b00000011));
+    #10
+    $display("Writing circle START");
+    axi4_lite_write(.address(32'h300), .data(32'h00));
+    #2000
     $display("Basic read and write test finished");
     $finish;
 end
